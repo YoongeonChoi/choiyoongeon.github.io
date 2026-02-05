@@ -124,9 +124,22 @@ export default function BlogPage() {
 
                             {/* Blog Posts Grid */}
                             {isLoading ? (
-                                <div className="space-y-4">
+                                <div className="space-y-6">
                                     {[...Array(3)].map((_, i) => (
-                                        <div key={i} className="h-48 bg-surface-secondary/50 rounded-2xl animate-pulse border border-border-subtle" />
+                                        <div key={i} className="p-6 rounded-2xl bg-surface-secondary border border-border-subtle animate-pulse">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="h-5 w-20 bg-surface-elevated rounded-full" />
+                                                <div className="h-4 w-16 bg-surface-elevated rounded-md" />
+                                            </div>
+                                            <div className="h-7 w-3/4 bg-surface-elevated rounded-lg mb-3" />
+                                            <div className="h-4 w-full bg-surface-elevated rounded-md mb-2" />
+                                            <div className="h-4 w-5/6 bg-surface-elevated rounded-md mb-6" />
+                                            <div className="flex gap-2">
+                                                <div className="h-4 w-12 bg-surface-elevated rounded-md" />
+                                                <div className="h-4 w-16 bg-surface-elevated rounded-md" />
+                                                <div className="h-4 w-10 bg-surface-elevated rounded-md" />
+                                            </div>
+                                        </div>
                                     ))}
                                 </div>
                             ) : (
