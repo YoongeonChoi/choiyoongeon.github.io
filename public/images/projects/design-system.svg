@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1625"/>
+      <stop offset="100%" style="stop-color:#0d0b14"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8b5cf6"/>
+      <stop offset="100%" style="stop-color:#ec4899"/>
+    </linearGradient>
+  </defs>
+  <rect fill="url(#bg)" width="800" height="600"/>
+  <!-- Component cards grid -->
+  <rect x="60" y="60" width="160" height="100" rx="12" fill="#1f1a2e" stroke="#2a2440"/>
+  <rect x="80" y="80" width="80" height="12" rx="6" fill="url(#accent)"/>
+  <rect x="80" y="105" width="120" height="32" rx="8" fill="#2a2440"/>
+  
+  <rect x="240" y="60" width="160" height="100" rx="12" fill="#1f1a2e" stroke="#2a2440"/>
+  <circle cx="320" cy="100" r="20" fill="url(#accent)" opacity="0.3"/>
+  <rect x="260" y="130" width="120" height="8" rx="4" fill="#3a3450"/>
+  
+  <rect x="420" y="60" width="160" height="100" rx="12" fill="#1f1a2e" stroke="#2a2440"/>
+  <rect x="440" y="80" width="40" height="40" rx="8" fill="url(#accent)" opacity="0.5"/>
+  <rect x="490" y="90" width="70" height="8" rx="4" fill="#3a3450"/>
+  <rect x="490" y="105" width="50" height="8" rx="4" fill="#3a3450"/>
+  
+  <rect x="600" y="60" width="160" height="100" rx="12" fill="#1f1a2e" stroke="#2a2440"/>
+  <rect x="620" y="80" width="120" height="60" rx="8" fill="#2a2440"/>
+  
+  <!-- Color palette -->
+  <rect x="60" y="200" width="340" height="120" rx="12" fill="#1f1a2e" stroke="#2a2440"/>
+  <circle cx="110" cy="260" r="30" fill="#8b5cf6"/>
+  <circle cx="180" cy="260" r="30" fill="#06b6d4"/>
+  <circle cx="250" cy="260" r="30" fill="#10b981"/>
+  <circle cx="320" cy="260" r="30" fill="#f59e0b"/>
+  
+  <!-- Typography -->
+  <rect x="420" y="200" width="340" height="120" rx="12" fill="#1f1a2e" stroke="#2a2440"/>
+  <rect x="440" y="230" width="200" height="16" rx="4" fill="#fff" opacity="0.9"/>
+  <rect x="440" y="260" width="280" height="10" rx="4" fill="#5a5070"/>
+  <rect x="440" y="280" width="240" height="10" rx="4" fill="#3a3450"/>
+  
+  <text x="400" y="540" font-family="system-ui" font-size="14" fill="#5a5070" text-anchor="middle">Design System Preview</text>
+</svg>
