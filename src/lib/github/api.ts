@@ -71,7 +71,7 @@ export async function fetchGitHubContributions(
     username: string,
     token?: string
 ): Promise<GitHubContributionData | null> {
-    const authToken = token || process.env.GITHUB_TOKEN;
+    const authToken = token || process.env.GH_PAT;
 
     if (!authToken) {
         console.warn("GitHub token not provided. Using fallback data.");
@@ -126,7 +126,7 @@ export async function fetchGitHubStats(
     username: string,
     token?: string
 ): Promise<GitHubUserStats | null> {
-    const authToken = token || process.env.GITHUB_TOKEN;
+    const authToken = token || process.env.GH_PAT;
 
     if (!authToken) {
         console.warn("GitHub token not provided. Using fallback data.");

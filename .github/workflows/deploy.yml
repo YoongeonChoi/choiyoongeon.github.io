@@ -5,6 +5,7 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
+# Grant GITHUB_TOKEN the permissions required to make a Pages deployment
 permissions:
   contents: read
   pages: write
@@ -71,7 +72,8 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          # Passkeys env vars might fail if logic still depends on them, but we moved to client-side.
+          # Use GH_PAT for GitHub API calls to avoid rate limits and permission issues with GITHUB_TOKEN
+          GH_PAT: ${{ secrets.GH_PAT }}
 
       - name: Create .nojekyll
         run: touch ./out/.nojekyll
