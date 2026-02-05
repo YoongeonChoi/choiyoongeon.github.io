@@ -4,6 +4,8 @@ import { createServerClient } from "@/lib/supabase/client";
 import type { Post } from "@/lib/supabase/types";
 
 // Generate static params for all published posts
+export const dynamicParams = false;
+
 export async function generateStaticParams() {
     const supabase = createServerClient();
     const { data: posts } = await supabase

@@ -74,9 +74,14 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           # Use GH_PAT for GitHub API calls to avoid rate limits and permission issues with GITHUB_TOKEN
           GH_PAT: ${{ secrets.GH_PAT }}
+          # Verbose logging for debugging
+          DEBUG: next:*
 
       - name: Create .nojekyll
         run: touch ./out/.nojekyll
+
+      - name: Inject SPA 404 Hack
+        run: cp public/404.html ./out/404.html || echo "No public/404.html found"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
