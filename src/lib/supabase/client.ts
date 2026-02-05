@@ -28,6 +28,4 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
  * Legacy Server Client - ONLY for Build-Time usage (getStaticProps/generateStaticParams).
  * DO NOT use this in runtime for Static Export (GitHub Pages) as it requires a Node.js server environment for cookies.
  */
-export function createServerClient() {
-    return createClient<Database>(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseAnonKey);
-}
+// End of browser client

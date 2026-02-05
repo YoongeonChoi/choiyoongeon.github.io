@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { BlogPostClient } from "./client";
-import { createServerClient } from "@/lib/supabase/client";
+import { createServerClient } from "@/lib/supabase/server";
 import type { Post } from "@/lib/supabase/types";
 
 // Generate static params for all published posts
