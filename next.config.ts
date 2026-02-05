@@ -2,10 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Enable Cache Components (PPR functionality in Next.js 16)
-  cacheComponents: true,
+  // cacheComponents: true, // Disabled for static export compatibility
+  output: "export", // Required for GitHub Pages
+  trailingSlash: true, // Required for proper sub-path routing on static hosts
 
   // Image optimization
   images: {
+    unoptimized: true, // Required for GitHub Pages (no Next.js Image Optimization Server)
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {

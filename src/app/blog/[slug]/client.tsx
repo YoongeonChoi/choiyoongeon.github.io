@@ -5,18 +5,11 @@ import Link from "next/link";
 import { Header } from "@/components/navigation/Header";
 import { springs, scrollFade } from "@/lib/motion/config";
 
-interface Post {
-    title: string;
-    content: string;
-    category: string;
-    tags: string[];
-    date: string;
-    readTime: number;
-    author: string;
-}
+import type { Post } from "@/lib/supabase/types";
 
 export function BlogPostClient({ post }: { post: Post }) {
-    const formattedDate = new Date(post.date).toLocaleDateString("en-US", {
+    const date = post.published_at || post.created_at;
+    const formattedDate = new Date(date).toLocaleDateString("en-US", {
         month: "long",
         day: "numeric",
         year: "numeric",
@@ -57,7 +50,7 @@ export function BlogPostClient({ post }: { post: Post }) {
                             <span className="px-3 py-1 text-sm font-medium rounded-full bg-accent-primary/10 text-accent-primary">
                                 {post.category}
                             </span>
-                            <span className="text-text-muted">{post.readTime} min read</span>
+                            <span className="text-text-muted">{post.read_time_minutes} min read</span>
                         </div>
 
                         <h1 className="heading-display text-3xl md:text-4xl lg:text-5xl mb-6">
@@ -65,9 +58,9 @@ export function BlogPostClient({ post }: { post: Post }) {
                         </h1>
 
                         <div className="flex items-center gap-4 text-text-secondary">
-                            <span>{post.author}</span>
+                            <span>Yoongeon Choi</span>
                             <span>•</span>
-                            <time dateTime={post.date}>{formattedDate}</time>
+                            <time dateTime={date}>{formattedDate}</time>
                         </div>
                     </motion.header>
 
@@ -119,7 +112,7 @@ export function BlogPostClient({ post }: { post: Post }) {
                         <div className="flex items-center gap-4">
                             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent-primary to-accent-secondary" />
                             <div>
-                                <h3 className="font-semibold text-text-primary">{post.author}</h3>
+                                <h3 className="font-semibold text-text-primary">Yoongeon Choi</h3>
                                 <p className="text-text-muted text-sm">Full-Stack Developer & Designer</p>
                             </div>
                         </div>

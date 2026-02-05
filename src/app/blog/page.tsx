@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useState } from "react";
 import Link from "next/link";
 import { Header } from "@/components/navigation/Header";
 import { springs, staggerContainer, staggerItem } from "@/lib/motion/config";
@@ -56,7 +57,25 @@ const blogPosts = [
 
 const categories = ["All", "Development", "Design", "Security", "Career"];
 
+// ... imports
+import { useSupabaseQuery } from "@/hooks/useSupabaseQuery";
+import type { Post } from "@/lib/supabase/types";
+
+// ... BlogCard component definitions (keep them below or imports)
+
 export default function BlogPage() {
+    const { data: posts, isLoading } = useSupabaseQuery<Post>("posts", {
+        published: true,
+    });
+
+    const [selectedCategory, setSelectedCategory] = useState("All");
+
+    const categories = ["All", "Development", "Design", "Security", "Career"];
+
+    const filteredPosts = posts?.filter(post =>
+        selectedCategory === "All" || post.category === selectedCategory
+    ) || [];
+
     return (
         <>
             <Header />
@@ -89,9 +108,10 @@ export default function BlogPage() {
                                 {categories.map((category, index) => (
                                     <motion.button
                                         key={category}
-                                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${index === 0
-                                                ? "bg-accent-primary text-surface-primary"
-                                                : "bg-surface-secondary text-text-secondary hover:text-text-primary"
+                                        onClick={() => setSelectedCategory(category)}
+                                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${selectedCategory === category
+                                            ? "bg-accent-primary text-surface-primary"
+                                            : "bg-surface-secondary text-text-secondary hover:text-text-primary"
                                             }`}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
@@ -103,16 +123,36 @@ export default function BlogPage() {
                             </motion.div>
 
                             {/* Blog Posts Grid */}
-                            <motion.div
-                                variants={staggerContainer}
-                                initial="hidden"
-                                animate="visible"
-                                className="space-y-4"
-                            >
-                                {blogPosts.map((post) => (
-                                    <BlogCard key={post.slug} {...post} />
-                                ))}
-                            </motion.div>
+                            {isLoading ? (
+                                <div className="space-y-4">
+                                    {[...Array(3)].map((_, i) => (
+                                        <div key={i} className="h-48 bg-surface-secondary/50 rounded-2xl animate-pulse border border-border-subtle" />
+                                    ))}
+                                </div>
+                            ) : (
+                                <motion.div
+                                    variants={staggerContainer}
+                                    initial="hidden"
+                                    animate="visible"
+                                    className="space-y-4"
+                                >
+                                    {filteredPosts.map((post) => (
+                                        <BlogCard
+                                            key={post.slug}
+                                            slug={post.slug}
+                                            title={post.title}
+                                            excerpt={post.excerpt || ""}
+                                            category={post.category}
+                                            tags={post.tags || []}
+                                            date={post.published_at || post.created_at}
+                                            readTime={post.read_time_minutes || 5}
+                                        />
+                                    ))}
+                                    {filteredPosts.length === 0 && (
+                                        <p className="text-text-muted">No posts found.</p>
+                                    )}
+                                </motion.div>
+                            )}
                         </div>
 
                         {/* Sidebar */}

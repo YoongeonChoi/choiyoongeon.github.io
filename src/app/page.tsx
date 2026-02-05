@@ -1,14 +1,26 @@
 "use client";
 
+import dynamic from "next/dynamic";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Header } from "@/components/navigation/Header";
+import { ProjectShowcase } from "@/components/bento/ProjectShowcase";
 import { BentoGrid } from "@/components/bento/BentoGrid";
-import { ProjectCard } from "@/components/bento/ProjectCard";
+import { ProjectCard } from "@/components/bento/ProjectCard"; // Kept if needed, but likely unused now in page.tsx directly
 import { ContributionGraph } from "@/components/github/ContributionGraph";
 import { GitHubStats } from "@/components/github/GitHubStats";
-import { SkillsVisualization } from "@/components/skills/SkillsVisualization";
 import { ParticleBackground } from "@/components/effects/ParticleBackground";
 import { springs, staggerContainer, staggerItem, scrollFade } from "@/lib/motion/config";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
+
+const SkillNebula = dynamic(() => import("@/components/skills/SkillNebula"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[600px] rounded-3xl bg-surface-secondary/20 animate-pulse flex items-center justify-center">
+      <span className="text-text-muted">Loading Nebula...</span>
+    </div>
+  ),
+});
 
 // Sample project data (to be replaced with CMS data)
 const featuredProjects = [
@@ -46,7 +58,9 @@ const featuredProjects = [
   },
 ];
 
-export default function HomePage() {
+export default function Home() {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <>
       <Header />
@@ -102,24 +116,32 @@ export default function HomePage() {
               variants={staggerItem}
               className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
-              <motion.a
+              <Link
                 href="#projects"
                 className="px-8 py-4 rounded-full bg-accent-primary text-surface-primary font-semibold hover:glow-accent transition-all duration-300"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                transition={springs.snappy}
               >
-                View Projects
-              </motion.a>
-              <motion.a
+                <motion.span
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={springs.snappy}
+                  className="inline-block"
+                >
+                  View Projects
+                </motion.span>
+              </Link>
+              <Link
                 href="/blog"
                 className="px-8 py-4 rounded-full glass font-semibold hover:bg-surface-elevated transition-all duration-300"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                transition={springs.snappy}
               >
-                Read Blog
-              </motion.a>
+                <motion.span
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={springs.snappy}
+                  className="inline-block"
+                >
+                  Read Blog
+                </motion.span>
+              </Link>
             </motion.div>
 
             {/* Scroll Indicator */}
@@ -147,29 +169,7 @@ export default function HomePage() {
         </section>
 
         {/* Projects Section */}
-        <section id="projects" className="py-24 px-6">
-          <div className="max-w-7xl mx-auto">
-            <motion.div
-              {...scrollFade}
-              className="mb-12"
-            >
-              <h2 className="heading-display heading-lg mb-4">Featured Projects</h2>
-              <p className="text-text-secondary text-lg max-w-2xl">
-                A selection of work that showcases my approach to problem-solving and design.
-              </p>
-            </motion.div>
-
-            <BentoGrid>
-              {featuredProjects.map((project, index) => (
-                <ProjectCard
-                  key={project.slug}
-                  {...project}
-                  className={index === 0 ? "md:col-span-2 md:row-span-2" : ""}
-                />
-              ))}
-            </BentoGrid>
-          </div>
-        </section>
+        <ProjectShowcase />
 
         {/* Skills Section */}
         <section className="py-24 px-6 bg-surface-secondary/50">
@@ -184,7 +184,9 @@ export default function HomePage() {
               </p>
             </motion.div>
 
-            <SkillsVisualization />
+            <motion.div {...scrollFade}>
+              <SkillNebula />
+            </motion.div>
           </div>
         </section>
 
@@ -229,18 +231,22 @@ export default function HomePage() {
               <p className="text-text-secondary text-lg mb-10">
                 Have a project in mind? I&apos;d love to hear about it. Let&apos;s create something amazing together.
               </p>
-              <motion.a
+              <Link
                 href="mailto:contact@yoongeonchoi.com"
                 className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-accent-primary text-surface-primary font-semibold hover:glow-accent transition-all duration-300"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                transition={springs.snappy}
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                Get in Touch
-              </motion.a>
+                <motion.span
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={springs.snappy}
+                  className="flex items-center gap-3"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Get in Touch
+                </motion.span>
+              </Link>
             </motion.div>
           </div>
         </section>
