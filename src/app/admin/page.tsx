@@ -1,43 +1,73 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/navigation/Header";
 import { springs, staggerContainer, staggerItem } from "@/lib/motion/config";
+import { supabase } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 export default function AdminPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState(""); // For simplicity, using password auth. Could be OTP.
     const [error, setError] = useState<string | null>(null);
+    const [stats, setStats] = useState({ posts: 0, projects: 0, views: 0 });
+    const router = useRouter();
 
-    const handlePasskeyLogin = async () => {
+    useEffect(() => {
+        checkSession();
+    }, []);
+
+    const checkSession = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            setIsAuthenticated(true);
+            fetchStats();
+        }
+    };
+
+    const fetchStats = async () => {
+        const { count: postsCount } = await supabase.from("posts").select("*", { count: "exact", head: true });
+        const { count: projectsCount } = await supabase.from("projects").select("*", { count: "exact", head: true });
+        // Views count would be aggregated, for now mocking specific aggregation or summing
+        const { data: posts } = await supabase.from("posts").select("view_count");
+        const typedPosts = (posts || []) as unknown as { view_count: number }[];
+        const totalViews = typedPosts.reduce((acc, curr) => acc + (curr.view_count || 0), 0) || 0;
+
+        setStats({
+            posts: postsCount || 0,
+            projects: projectsCount || 0,
+            views: totalViews,
+        });
+    };
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
         setIsLoading(true);
         setError(null);
 
         try {
-            // Check if WebAuthn is supported
-            if (!window.PublicKeyCredential) {
-                throw new Error("WebAuthn is not supported in this browser");
-            }
+            const { error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
 
-            // Check if passkeys are available
-            const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+            if (error) throw error;
 
-            if (!available) {
-                throw new Error("No passkey authenticator available on this device");
-            }
-
-            // In production, this would call the server to get authentication options
-            // For demo, we simulate a successful authentication
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-
-            // Simulated success
             setIsAuthenticated(true);
+            fetchStats();
         } catch (err) {
             setError(err instanceof Error ? err.message : "Authentication failed");
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleSignOut = async () => {
+        await supabase.auth.signOut();
+        setIsAuthenticated(false);
     };
 
     if (!isAuthenticated) {
@@ -59,7 +89,7 @@ export default function AdminPage() {
                             </div>
                             <h1 className="heading-display text-2xl mb-2">Admin Access</h1>
                             <p className="text-text-muted">
-                                Authenticate with your passkey to access the admin dashboard
+                                Sign in to manage your portfolio
                             </p>
                         </div>
 
@@ -74,47 +104,38 @@ export default function AdminPage() {
                                 </motion.div>
                             )}
 
-                            <motion.button
-                                onClick={handlePasskeyLogin}
-                                disabled={isLoading}
-                                className="w-full py-4 rounded-xl bg-accent-primary text-surface-primary font-semibold hover:glow-accent transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
-                                whileHover={{ scale: isLoading ? 1 : 1.02 }}
-                                whileTap={{ scale: isLoading ? 1 : 0.98 }}
-                                transition={springs.snappy}
-                            >
-                                {isLoading ? (
-                                    <>
-                                        <motion.div
-                                            className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                                            animate={{ rotate: 360 }}
-                                            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                                        />
-                                        Authenticating...
-                                    </>
-                                ) : (
-                                    <>
-                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
-                                        </svg>
-                                        Sign in with Passkey
-                                    </>
-                                )}
-                            </motion.button>
-
-                            <div className="mt-4 text-center">
-                                <p className="text-text-muted text-sm">
-                                    Using biometric authentication (Face ID, Touch ID, or Windows Hello)
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="mt-6 text-center">
-                            <p className="text-text-muted text-sm">
-                                Need help?{" "}
-                                <a href="mailto:admin@yoongeonchoi.com" className="text-accent-primary hover:underline">
-                                    Contact support
-                                </a>
-                            </p>
+                            <form onSubmit={handleLogin} className="space-y-4">
+                                <div>
+                                    <input
+                                        type="email"
+                                        placeholder="Email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full px-4 py-3 rounded-xl bg-surface-elevated border border-border-subtle text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <input
+                                        type="password"
+                                        placeholder="Password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full px-4 py-3 rounded-xl bg-surface-elevated border border-border-subtle text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors"
+                                        required
+                                    />
+                                </div>
+                                <motion.button
+                                    type="submit"
+                                    disabled={isLoading}
+                                    className="w-full py-4 rounded-xl bg-accent-primary text-surface-primary font-semibold hover:glow-accent transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                                    whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                                    whileTap={{ scale: isLoading ? 1 : 0.98 }}
+                                    transition={springs.snappy}
+                                >
+                                    {isLoading ? "Authenticating..." : "Sign In"}
+                                </motion.button>
+                            </form>
                         </div>
                     </motion.div>
                 </main>
@@ -140,7 +161,7 @@ export default function AdminPage() {
                             <p className="text-text-muted">Manage your portfolio and blog content</p>
                         </div>
                         <button
-                            onClick={() => setIsAuthenticated(false)}
+                            onClick={handleSignOut}
                             className="px-4 py-2 rounded-lg bg-surface-secondary text-text-secondary hover:text-text-primary transition-colors"
                         >
                             Sign Out
@@ -155,10 +176,10 @@ export default function AdminPage() {
                         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
                     >
                         {[
-                            { label: "Blog Posts", value: "5", icon: "📝" },
-                            { label: "Projects", value: "6", icon: "💼" },
-                            { label: "Total Views", value: "12.4K", icon: "👁️" },
-                            { label: "Subscribers", value: "234", icon: "📬" },
+                            { label: "Blog Posts", value: stats.posts.toString(), icon: "📝" },
+                            { label: "Projects", value: stats.projects.toString(), icon: "💼" },
+                            { label: "Total Views", value: stats.views.toLocaleString(), icon: "👁️" },
+                            // { label: "Subscribers", value: "234", icon: "📬" }, // Removed mock subscriber count
                         ].map((stat) => (
                             <motion.div
                                 key={stat.label}
@@ -197,7 +218,7 @@ export default function AdminPage() {
                         </a>
 
                         <a
-                            href="/admin/projects"
+                            href="/admin/projects" // Ensure this page exists or link to /admin/write?type=project
                             className="p-6 rounded-2xl bg-surface-secondary border border-border-subtle hover:border-accent-primary transition-colors group"
                         >
                             <div className="flex items-center gap-4">

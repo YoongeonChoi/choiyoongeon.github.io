@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useState, useCallback } from "react";
 import { Header } from "@/components/navigation/Header";
 import { springs } from "@/lib/motion/config";
+import { supabase } from "@/lib/supabase/client";
 
 export default function WritePage() {
     const [title, setTitle] = useState("");
@@ -12,6 +13,41 @@ export default function WritePage() {
     const [tags, setTags] = useState<string[]>([]);
     const [tagInput, setTagInput] = useState("");
     const [isSaving, setIsSaving] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return;
+
+        const file = e.target.files[0];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `public/${fileName}`;
+
+        setIsUploading(true);
+
+        try {
+            const { error: uploadError } = await supabase.storage
+                .from('content')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('content')
+                .getPublicUrl(filePath);
+
+            // Insert markdown image at cursor position or append
+            const imageMarkdown = `\n![${file.name}](${publicUrl})\n`;
+            setContent(prev => prev + imageMarkdown);
+
+            alert("Image uploaded successfully!");
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            alert('Failed to upload image');
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     const handleAddTag = useCallback(() => {
         if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -26,10 +62,32 @@ export default function WritePage() {
 
     const handleSave = async (publish: boolean = false) => {
         setIsSaving(true);
-        // In production, this would save to the database
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        setIsSaving(false);
-        alert(publish ? "Post published!" : "Draft saved!");
+
+        try {
+            // Generate basic slug from title if new
+            const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
+            // Upsert post (update if slug exists, else insert - simplified for demo, robust would check ID)
+            const { error } = await supabase.from("posts").upsert({
+                title,
+                slug, // In production, allow slug editing to avoid overwrites or conflicts
+                content,
+                category,
+                tags,
+                published: publish,
+                published_at: publish ? new Date().toISOString() : null,
+                updated_at: new Date().toISOString()
+            } as any, { onConflict: 'slug' });
+
+            if (error) throw error;
+
+            alert(publish ? "Post published!" : "Draft saved!");
+        } catch (err) {
+            console.error(err);
+            alert("Failed to save post");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     // Simple markdown preview
@@ -119,6 +177,25 @@ export default function WritePage() {
                                 <option value="Security">Security</option>
                                 <option value="Career">Career</option>
                             </select>
+
+                            {/* Image Upload */}
+                            <div className="flex items-center gap-4 p-4 rounded-xl bg-surface-elevated border border-border-subtle">
+                                <div className="flex-1">
+                                    <label className="text-sm font-medium text-text-secondary block mb-1">
+                                        Upload Image
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                        disabled={isUploading}
+                                        className="text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent-primary/10 file:text-accent-primary hover:file:bg-accent-primary/20 transition-all cursor-pointer"
+                                    />
+                                </div>
+                                {isUploading && (
+                                    <span className="text-sm text-accent-primary animate-pulse">Uploading...</span>
+                                )}
+                            </div>
 
                             {/* Tags */}
                             <div className="space-y-2">

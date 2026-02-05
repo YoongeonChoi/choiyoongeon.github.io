@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { RedirectHandler } from "@/components/logic/RedirectHandler";
 
 // Font configurations
 const inter = Inter({
@@ -126,6 +127,7 @@ export default function RootLayout({
 
         {/* Main content wrapper */}
         <div className="relative">
+          <RedirectHandler />
           {children}
         </div>
       </body>
