@@ -3,47 +3,49 @@
 import { motion } from "framer-motion";
 
 const CONTACT_LINKS = [
-    {
-        label: "GitHub",
-        href: "https://github.com/choiyoongeon",
-        icon: "🔗",
-    },
-    {
-        label: "Email",
-        href: "mailto:contact@choiyoongeon.dev",
-        icon: "✉️",
-    },
+  {
+    label: "GitHub",
+    href: "https://github.com/choiyoongeon",
+    value: "@choiyoongeon",
+  },
+  {
+    label: "Email",
+    href: "mailto:contact@choiyoongeon.dev",
+    value: "contact@choiyoongeon.dev",
+  },
 ];
 
 export function ContactCard() {
-    return (
-        <div>
-            <h3 className="text-sm font-semibold text-text-secondary mb-4 uppercase tracking-wider">
-                Get in Touch
-            </h3>
-            <div className="space-y-2">
-                {CONTACT_LINKS.map((link, i) => (
-                    <motion.a
-                        key={link.label}
-                        href={link.href}
-                        target={link.href.startsWith("http") ? "_blank" : undefined}
-                        rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.1 + 0.3 }}
-                        whileHover={{ x: 4 }}
-                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-accent-muted transition-all duration-300 group"
-                    >
-                        <span className="text-lg">{link.icon}</span>
-                        <span className="text-sm font-medium text-text-primary group-hover:text-accent transition-colors">
-                            {link.label}
-                        </span>
-                        <span className="ml-auto text-text-muted opacity-0 group-hover:opacity-100 transition-opacity">
-                            →
-                        </span>
-                    </motion.a>
-                ))}
+  return (
+    <div>
+      <div className="mb-4 flex items-end justify-between gap-4">
+        <h3 className="text-[11px] font-medium uppercase tracking-[0.2em] text-text-muted">
+          Contact
+        </h3>
+        <span className="text-xs text-text-muted">Open to collaboration</span>
+      </div>
+      <div className="grid gap-2">
+        {CONTACT_LINKS.map((link, i) => (
+          <motion.a
+            key={link.label}
+            href={link.href}
+            target={link.href.startsWith("http") ? "_blank" : undefined}
+            rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 * i, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            whileHover={{ y: -2, scale: 1.01 }}
+            className="group rounded-2xl border border-border-default bg-surface-overlay px-4 py-3 transition-all duration-300 hover:border-border-hover"
+          >
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-sm font-medium text-text-primary">{link.label}</span>
+              <span className="text-xs text-text-secondary transition-colors group-hover:text-accent">
+                {link.value}
+              </span>
             </div>
-        </div>
-    );
+          </motion.a>
+        ))}
+      </div>
+    </div>
+  );
 }

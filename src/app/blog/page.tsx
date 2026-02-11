@@ -7,6 +7,8 @@ export const metadata: Metadata = {
     title: "Blog",
     description: "Technical articles, thoughts, and deep dives into modern web development.",
 };
+export const dynamic = "force-static";
+export const revalidate = false;
 
 /**
  * Blog list page — Static (SSG).
@@ -14,29 +16,31 @@ export const metadata: Metadata = {
  */
 export default async function BlogPage() {
     let posts: BlogPost[] = [];
+    const supabase = createServerClient();
 
-    try {
-        const supabase = createServerClient();
-        const { data } = await supabase
-            .from("blog_posts")
-            .select("*")
-            .eq("is_published", true)
-            .order("published_at", { ascending: false });
+    if (supabase) {
+        try {
+            const { data } = await supabase
+                .from("blog_posts")
+                .select("*")
+                .eq("is_published", true)
+                .order("published_at", { ascending: false });
 
-        if (data) {
-            posts = data as BlogPost[];
+            if (data) {
+                posts = data as BlogPost[];
+            }
+        } catch (error) {
+            console.warn("Failed to fetch posts at build time:", error);
         }
-    } catch (error) {
-        console.warn("Failed to fetch posts at build time:", error);
     }
 
     return (
-        <main className="mx-auto max-w-6xl px-6 pt-28 pb-12">
+        <main className="site-container pt-28 pb-16">
             <section className="mb-12">
-                <h1 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
+                <h1 className="text-[clamp(2rem,5vw,4rem)] font-semibold tracking-[-0.04em] text-text-primary mb-4">
                     Blog
                 </h1>
-                <p className="text-lg text-text-secondary">
+                <p className="text-lg text-text-secondary max-w-2xl">
                     Technical articles, thoughts, and deep dives.
                 </p>
             </section>
@@ -52,7 +56,7 @@ export default async function BlogPage() {
                     </p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     {posts.map((post) => (
                         <BlogCard key={post.id} post={post} />
                     ))}

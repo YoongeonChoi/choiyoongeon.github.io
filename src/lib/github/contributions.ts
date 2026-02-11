@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase/client";
+import { getSupabaseClient } from "@/lib/supabase/client";
 import { ContributionsResponseSchema, type ContributionsResponse } from "@/lib/validation/schemas";
 
 /**
@@ -8,6 +8,11 @@ import { ContributionsResponseSchema, type ContributionsResponse } from "@/lib/v
 export async function fetchContributions(
     username: string
 ): Promise<ContributionsResponse> {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+        throw new Error("Supabase client is not configured");
+    }
+
     const { data, error } = await supabase.functions.invoke("github-proxy", {
         body: { username },
     });

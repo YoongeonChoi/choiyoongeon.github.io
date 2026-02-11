@@ -1,6 +1,17 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
+import gsap from "gsap";
+import {
+  motion,
+  useMotionValueEvent,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+  useVelocity,
+  type MotionValue,
+} from "framer-motion";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { BentoGrid, BentoCard } from "@/components/bento/BentoGrid";
 import { ProfileCard } from "@/components/bento/ProfileCard";
@@ -9,24 +20,85 @@ import { LatestPostsCard } from "@/components/bento/LatestPostsCard";
 import { ContactCard } from "@/components/bento/ContactCard";
 import { StatsCard } from "@/components/bento/StatsCard";
 import { ContributionGrass } from "@/components/github/ContributionGrass";
-import { RevealOnScroll } from "@/components/shared/RevealOnScroll";
 import type { BlogPost } from "@/lib/supabase/types";
 
 interface GitHubGrassCardProps {
-    username: string;
+  username: string;
+  scrollEnergy: number;
 }
 
-function GitHubGrassCardContent({ username }: GitHubGrassCardProps) {
-    return (
-        <ErrorBoundary>
-            <ContributionGrass username={username} />
-        </ErrorBoundary>
-    );
+function GitHubGrassCardContent({ username, scrollEnergy }: GitHubGrassCardProps) {
+  return (
+    <ErrorBoundary>
+      <ContributionGrass username={username} scrollEnergy={scrollEnergy} />
+    </ErrorBoundary>
+  );
 }
 
 interface HomeContentProps {
-    latestPosts: BlogPost[];
-    githubUsername: string;
+  latestPosts: BlogPost[];
+  githubUsername: string;
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function SpatialBentoSection({
+  scrollYProgress,
+  motionEnergy,
+  latestPosts,
+  githubUsername,
+}: {
+  scrollYProgress: MotionValue<number>;
+  motionEnergy: number;
+  latestPosts: BlogPost[];
+  githubUsername: string;
+}) {
+  const gridY = useTransform(scrollYProgress, [0, 1], [0, -85]);
+  const gridRotateX = useTransform(scrollYProgress, [0, 1], [0.3, -1.8]);
+  const gridScale = useTransform(scrollYProgress, [0, 1], [1, 0.97]);
+
+  return (
+    <motion.section
+      style={{
+        y: gridY,
+        rotateX: gridRotateX,
+        scale: gridScale,
+        transformPerspective: 1400,
+      }}
+      className="mt-[clamp(2rem,6vw,5.2rem)]"
+    >
+      <BentoGrid>
+        <BentoCard delay={1} depth={0.02}>
+          <ProfileCard />
+        </BentoCard>
+
+        <BentoCard colSpan={2} delay={2} depth={0.04}>
+          <GitHubGrassCardContent
+            username={githubUsername}
+            scrollEnergy={motionEnergy}
+          />
+        </BentoCard>
+
+        <BentoCard delay={3} depth={0.03}>
+          <TechStackCard />
+        </BentoCard>
+
+        <BentoCard delay={4} depth={0.04}>
+          <LatestPostsCard posts={latestPosts} />
+        </BentoCard>
+
+        <BentoCard delay={5} depth={0.02}>
+          <StatsCard />
+        </BentoCard>
+
+        <BentoCard colSpan={3} delay={6} depth={0.03}>
+          <ContactCard />
+        </BentoCard>
+      </BentoGrid>
+    </motion.section>
+  );
 }
 
 /**
@@ -34,71 +106,109 @@ interface HomeContentProps {
  * Separated from page.tsx to enable client-side interactivity.
  */
 export function HomeContent({
-    latestPosts,
-    githubUsername,
+  latestPosts,
+  githubUsername,
 }: HomeContentProps) {
-    return (
-        <main className="mx-auto max-w-6xl px-6 pt-28 pb-12">
-            {/* Hero Section */}
-            <RevealOnScroll>
-                <section className="text-center mb-16">
-                    <motion.h1
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                        className="text-4xl md:text-6xl font-bold text-text-primary mb-4"
-                    >
-                        Building the{" "}
-                        <span className="gradient-text">Future</span>
-                    </motion.h1>
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                            duration: 0.8,
-                            delay: 0.1,
-                            ease: [0.16, 1, 0.3, 1],
-                        }}
-                        className="text-lg text-text-secondary max-w-xl mx-auto"
-                    >
-                        Full-stack developer specializing in secure, performant web
-                        applications. Zero-trust by design.
-                    </motion.p>
-                </section>
-            </RevealOnScroll>
+  const containerRef = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLSpanElement>(null);
+  const reducedMotion = useReducedMotion();
+  const [motionEnergy, setMotionEnergy] = useState(0);
 
-            {/* Bento Grid */}
-            <BentoGrid>
-                {/* Profile Card — 1 col */}
-                <BentoCard delay={1}>
-                    <ProfileCard />
-                </BentoCard>
+  const { scrollY, scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"],
+  });
+  const velocity = useVelocity(scrollY);
+  const smoothVelocity = useSpring(velocity, { damping: 30, stiffness: 260 });
 
-                {/* GitHub Grass — 2 cols */}
-                <BentoCard colSpan={2} delay={2}>
-                    <GitHubGrassCardContent username={githubUsername} />
-                </BentoCard>
+  const heroScale = useTransform(smoothVelocity, [-2600, 0, 2600], [0.95, 1, 1.06]);
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, -64]);
+  const eyebrowY = useTransform(scrollYProgress, [0, 1], [0, -35]);
 
-                {/* Tech Stack — 1 col */}
-                <BentoCard delay={3}>
-                    <TechStackCard />
-                </BentoCard>
+  useMotionValueEvent(smoothVelocity, "change", (current) => {
+    const next = clamp(Math.abs(current) / 2200, 0, 1);
+    setMotionEnergy(next);
+  });
 
-                {/* Latest Posts — 1 col */}
-                <BentoCard delay={4}>
-                    <LatestPostsCard posts={latestPosts} />
-                </BentoCard>
+  useEffect(() => {
+    if (reducedMotion || !titleRef.current) {
+      return;
+    }
 
-                {/* Stats — 1 col */}
-                <BentoCard delay={5}>
-                    <StatsCard />
-                </BentoCard>
+    const title = titleRef.current;
+    const setY = gsap.quickTo(title, "yPercent", { duration: 0.45, ease: "power3.out" });
+    const setStretch = gsap.quickTo(title, "--kinetic-stretch", {
+      duration: 0.35,
+      ease: "power3.out",
+    });
 
-                {/* Contact — full width on mobile, 3 cols on desktop */}
-                <BentoCard colSpan={3} delay={6}>
-                    <ContactCard />
-                </BentoCard>
-            </BentoGrid>
-        </main>
-    );
+    const unsubscribe = smoothVelocity.on("change", (current) => {
+      const ratio = clamp(current / 1200, -1, 1);
+      setY(ratio * 5);
+      setStretch(1 + Math.abs(ratio) * 0.12);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [reducedMotion, smoothVelocity]);
+
+  const kineticStyle = useMemo(
+    () => ({
+      scale: reducedMotion ? 1 : heroScale,
+      y: reducedMotion ? 0 : heroY,
+      transformPerspective: 1500,
+    }),
+    [heroScale, heroY, reducedMotion]
+  );
+
+  return (
+    <main ref={containerRef} className="site-container pt-28 pb-16 md:pb-20">
+      <motion.section
+        style={{ y: eyebrowY }}
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        className="mb-6"
+      >
+        <p className="inline-flex items-center gap-2 rounded-full border border-border-default bg-surface-overlay px-4 py-2 text-xs font-medium uppercase tracking-[0.18em] text-text-secondary">
+          Nexus-PR Motion System 2026
+        </p>
+      </motion.section>
+
+      <motion.section style={kineticStyle} className="relative mb-8 md:mb-10">
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          className="text-[var(--heading-xl)] leading-[0.9] font-semibold tracking-[-0.045em] text-text-primary [transform-style:preserve-3d]"
+        >
+          <span
+            ref={titleRef}
+            className="[transform:scaleY(var(--kinetic-stretch,1))] origin-center block will-change-transform"
+          >
+            Spatially crafted
+          </span>
+          <span className="gradient-text block">digital narrative</span>
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          className="mt-6 max-w-3xl text-[clamp(1rem,0.7rem+1.2vw,1.4rem)] text-text-secondary"
+        >
+          Kinetic storytelling, soft-physics interactions, and synchronized 3D GitHub
+          grass motion unify this platform into one coherent spatial identity.
+        </motion.p>
+      </motion.section>
+
+      <SpatialBentoSection
+        scrollYProgress={scrollYProgress}
+        motionEnergy={motionEnergy}
+        latestPosts={latestPosts}
+        githubUsername={githubUsername}
+      />
+    </main>
+  );
 }

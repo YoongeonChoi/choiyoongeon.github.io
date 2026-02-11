@@ -17,71 +17,60 @@ const FOOTER_LINKS = [
 ];
 
 export function Footer() {
-    return (
-        <footer
-            className="mt-24 border-t"
-            style={{ borderColor: "var(--border-default)" }}
-        >
-            <div className="mx-auto max-w-6xl px-6 py-12">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {/* Brand */}
-                    <div>
-                        <div className="flex items-center gap-2 mb-4">
-                            <span className="text-xl font-bold gradient-text">Nexus</span>
-                            <span className="text-xl font-light text-text-primary">PR</span>
-                        </div>
-                        <p className="text-sm text-text-secondary max-w-xs">
-                            A zero-trust personal PR & blog platform, built with Next.js and
-                            secured with enterprise-grade protocols.
-                        </p>
-                    </div>
-
-                    {/* Link Groups */}
-                    {FOOTER_LINKS.map((group) => (
-                        <div key={group.title}>
-                            <h4 className="text-sm font-semibold text-text-primary mb-4">
-                                {group.title}
-                            </h4>
-                            <ul className="space-y-2">
-                                {group.links.map((link) => (
-                                    <li key={link.href}>
-                                        {"external" in link && link.external ? (
-                                            <a
-                                                href={link.href}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-sm text-text-secondary hover:text-accent transition-colors"
-                                            >
-                                                {link.label} ↗
-                                            </a>
-                                        ) : (
-                                            <Link
-                                                href={link.href}
-                                                className="text-sm text-text-secondary hover:text-accent transition-colors"
-                                            >
-                                                {link.label}
-                                            </Link>
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Bottom Bar */}
-                <div
-                    className="mt-12 pt-6 border-t flex flex-col md:flex-row items-center justify-between gap-4"
-                    style={{ borderColor: "var(--border-default)" }}
-                >
-                    <p className="text-xs text-text-muted">
-                        © {new Date().getFullYear()} Yoongeon Choi. All rights reserved.
-                    </p>
-                    <p className="text-xs text-text-muted">
-                        Built with Next.js · Secured by Supabase · Deployed on GitHub Pages
-                    </p>
-                </div>
+  return (
+    <footer className="mt-24 pb-12 pt-6">
+      <div className="site-container">
+        <div className="frosted-panel p-6 md:p-8">
+          <div className="grid gap-8 md:grid-cols-3">
+            <div>
+              <div className="mb-3 flex items-baseline gap-2">
+                <span className="text-lg font-semibold tracking-[-0.03em] text-text-primary">Nexus</span>
+                <span className="text-xs uppercase tracking-[0.2em] text-text-secondary">PR</span>
+              </div>
+              <p className="max-w-xs text-sm text-text-secondary">
+                Spatial portfolio and blog platform focused on high-trust product
+                engineering.
+              </p>
             </div>
-        </footer>
-    );
+
+            {FOOTER_LINKS.map((group) => (
+              <div key={group.title}>
+                <h4 className="mb-3 text-xs uppercase tracking-[0.18em] text-text-muted">
+                  {group.title}
+                </h4>
+                <ul className="space-y-2">
+                  {group.links.map((link) => (
+                    <li key={link.href}>
+                      {"external" in link && link.external ? (
+                        <a
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-text-secondary transition-colors hover:text-accent"
+                        >
+                          {link.label} ↗
+                        </a>
+                      ) : (
+                        <Link
+                          href={link.href}
+                          className="text-sm text-text-secondary transition-colors hover:text-accent"
+                        >
+                          {link.label}
+                        </Link>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 border-t border-border-default pt-5 text-xs text-text-muted md:flex md:items-center md:justify-between">
+            <p>© {new Date().getFullYear()} Yoongeon Choi.</p>
+            <p className="mt-2 md:mt-0">Built with Next.js 16 · Framer Motion · Three.js</p>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
 }

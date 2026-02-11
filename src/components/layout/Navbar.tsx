@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 const NAV_LINKS = [
     { href: "/", label: "Home" },
@@ -14,119 +15,106 @@ const NAV_LINKS = [
  * Fixed at top with backdrop blur. 
  */
 export function Navbar() {
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    return (
-        <nav className="fixed top-0 left-0 right-0 z-50">
-            <div
-                className="mx-auto max-w-6xl px-6 py-4"
-                style={{
-                    background: "var(--surface)",
-                    backdropFilter: "blur(var(--glass-blur))",
-                    WebkitBackdropFilter: "blur(var(--glass-blur))",
-                    borderBottom: "1px solid var(--glass-border)",
-                }}
+  return (
+    <nav className="fixed left-0 right-0 top-0 z-50">
+      <div className="site-container pt-4">
+        <div className="frosted-panel flex items-center justify-between px-4 py-3 md:px-5">
+          <Link href="/" className="group flex items-baseline gap-2">
+            <span className="text-lg font-semibold tracking-[-0.03em] text-text-primary transition-colors group-hover:text-accent">
+              Nexus
+            </span>
+            <span className="text-sm uppercase tracking-[0.18em] text-text-secondary">PR</span>
+          </Link>
+
+          <div className="hidden items-center gap-2 md:flex">
+            {NAV_LINKS.map((link) => {
+              const active = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`rounded-xl px-4 py-2 text-sm transition-all duration-300 ${
+                    active
+                      ? "bg-accent text-white"
+                      : "text-text-secondary hover:bg-accent-muted hover:text-text-primary"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+            <a
+              href="https://github.com/choiyoongeon"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl border border-border-default bg-surface-overlay px-4 py-2 text-sm text-text-primary transition-all duration-300 hover:border-border-hover hover:text-accent"
             >
-                <div className="flex items-center justify-between">
-                    {/* Logo */}
-                    <Link href="/" className="group flex items-center gap-2">
-                        <span className="text-xl font-bold gradient-text">
-                            Nexus
-                        </span>
-                        <span className="text-xl font-light text-text-primary">
-                            PR
-                        </span>
-                    </Link>
+              GitHub
+            </a>
+          </div>
 
-                    {/* Desktop Nav */}
-                    <div className="hidden md:flex items-center gap-8">
-                        {NAV_LINKS.map((link) => (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                className="relative text-sm font-medium text-text-secondary hover:text-accent transition-colors group"
-                            >
-                                {link.label}
-                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent transition-all duration-300 group-hover:w-full" />
-                            </Link>
-                        ))}
-                        <a
-                            href="https://github.com/choiyoongeon"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-4 py-2 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accent-hover transition-all duration-300 hover:shadow-[0_0_20px_var(--accent-glow)]"
-                        >
-                            GitHub
-                        </a>
-                    </div>
+          <button
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+            className="relative grid h-8 w-8 place-items-center md:hidden"
+            aria-label="Toggle menu"
+          >
+            <motion.span
+              animate={{
+                rotate: isMobileMenuOpen ? 45 : 0,
+                y: isMobileMenuOpen ? 6 : 0,
+              }}
+              className="absolute h-0.5 w-5 bg-text-primary"
+            />
+            <motion.span
+              animate={{ opacity: isMobileMenuOpen ? 0 : 1 }}
+              className="absolute h-0.5 w-5 bg-text-primary"
+            />
+            <motion.span
+              animate={{
+                rotate: isMobileMenuOpen ? -45 : 0,
+                y: isMobileMenuOpen ? -6 : 0,
+              }}
+              className="absolute h-0.5 w-5 bg-text-primary"
+            />
+          </button>
+        </div>
+      </div>
 
-                    {/* Mobile Hamburger */}
-                    <button
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        className="md:hidden relative w-8 h-8 flex flex-col items-center justify-center gap-1.5"
-                        aria-label="Toggle menu"
-                    >
-                        <motion.span
-                            animate={{
-                                rotate: isMobileMenuOpen ? 45 : 0,
-                                y: isMobileMenuOpen ? 6 : 0,
-                            }}
-                            className="w-6 h-0.5 bg-text-primary block"
-                        />
-                        <motion.span
-                            animate={{ opacity: isMobileMenuOpen ? 0 : 1 }}
-                            className="w-6 h-0.5 bg-text-primary block"
-                        />
-                        <motion.span
-                            animate={{
-                                rotate: isMobileMenuOpen ? -45 : 0,
-                                y: isMobileMenuOpen ? -6 : 0,
-                            }}
-                            className="w-6 h-0.5 bg-text-primary block"
-                        />
-                    </button>
-                </div>
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="site-container mt-2 md:hidden"
+          >
+            <div className="frosted-panel grid gap-2 p-2">
+              {NAV_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="rounded-xl px-4 py-3 text-sm text-text-secondary transition-colors hover:bg-accent-muted hover:text-text-primary"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <a
+                href="https://github.com/choiyoongeon"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-xl bg-accent px-4 py-3 text-center text-sm font-medium text-white"
+              >
+                GitHub
+              </a>
             </div>
-
-            {/* Mobile Menu */}
-            <AnimatePresence>
-                {isMobileMenuOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
-                        className="md:hidden mx-4 mt-2 rounded-2xl overflow-hidden"
-                        style={{
-                            background: "var(--surface-raised)",
-                            backdropFilter: "blur(calc(var(--glass-blur) * 1.5))",
-                            WebkitBackdropFilter: "blur(calc(var(--glass-blur) * 1.5))",
-                            border: "1px solid var(--glass-border)",
-                        }}
-                    >
-                        <div className="p-4 flex flex-col gap-2">
-                            {NAV_LINKS.map((link) => (
-                                <Link
-                                    key={link.href}
-                                    href={link.href}
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                    className="px-4 py-3 rounded-xl text-sm font-medium text-text-secondary hover:text-accent hover:bg-accent-muted transition-all"
-                                >
-                                    {link.label}
-                                </Link>
-                            ))}
-                            <a
-                                href="https://github.com/choiyoongeon"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-4 py-3 rounded-xl text-sm font-medium text-center bg-accent text-white hover:bg-accent-hover transition-colors"
-                            >
-                                GitHub
-                            </a>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </nav>
-    );
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </nav>
+  );
 }

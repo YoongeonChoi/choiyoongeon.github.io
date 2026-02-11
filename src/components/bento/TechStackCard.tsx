@@ -3,39 +3,36 @@
 import { motion } from "framer-motion";
 
 const TECH_STACK = [
-    { name: "Next.js", icon: "⚡", color: "#000" },
-    { name: "TypeScript", icon: "🔷", color: "#3178c6" },
-    { name: "React", icon: "⚛️", color: "#61dafb" },
-    { name: "Tailwind", icon: "🎨", color: "#06b6d4" },
-    { name: "Supabase", icon: "🟢", color: "#3ecf8e" },
-    { name: "Three.js", icon: "🎲", color: "#000" },
-    { name: "Framer", icon: "🎬", color: "#bb4cd1" },
-    { name: "PostgreSQL", icon: "🐘", color: "#336791" },
+  "Next.js",
+  "TypeScript",
+  "React",
+  "Tailwind",
+  "Supabase",
+  "Three.js",
+  "Framer Motion",
+  "PostgreSQL",
 ];
 
 export function TechStackCard() {
-    return (
-        <div>
-            <h3 className="text-sm font-semibold text-text-secondary mb-4 uppercase tracking-wider">
-                Tech Stack
-            </h3>
-            <div className="grid grid-cols-2 gap-2">
-                {TECH_STACK.map((tech, i) => (
-                    <motion.div
-                        key={tech.name}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.05 + 0.3 }}
-                        whileHover={{ scale: 1.05 }}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl glass-inset cursor-default"
-                    >
-                        <span className="text-lg">{tech.icon}</span>
-                        <span className="text-xs font-medium text-text-primary truncate">
-                            {tech.name}
-                        </span>
-                    </motion.div>
-                ))}
-            </div>
-        </div>
-    );
+  return (
+    <div>
+      <h3 className="text-[11px] font-medium uppercase tracking-[0.2em] text-text-muted">
+        Tech Stack
+      </h3>
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        {TECH_STACK.map((tech, i) => (
+          <motion.div
+            key={tech}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.04, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            whileHover={{ scale: 1.03, y: -2 }}
+            className="glass-inset px-3 py-2 text-[12px] font-medium tracking-[-0.01em] text-text-primary"
+          >
+            {tech}
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
 }

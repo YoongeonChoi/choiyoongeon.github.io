@@ -10,7 +10,6 @@ import { TableOfContents } from "@/components/blog/TableOfContents";
 import type { BlogPost } from "@/lib/supabase/types";
 
 type BlogRouteParams = { slug: string };
-type BlogSearchParams = Record<string, string | string[] | undefined>;
 
 export const dynamicParams = false;
 export const dynamic = "force-static";
@@ -139,11 +138,9 @@ export async function generateStaticParams(): Promise<BlogRouteParams[]> {
 }
 
 export async function generateMetadata({
-    params,
-    searchParams: _searchParams,
+    params
 }: {
     params: Promise<BlogRouteParams>;
-    searchParams: Promise<BlogSearchParams>;
 }): Promise<Metadata> {
     const { slug } = await params;
     const post = await fetchPublishedPostBySlug(slug);
@@ -159,11 +156,9 @@ export async function generateMetadata({
 }
 
 export default async function BlogPostPage({
-    params,
-    searchParams: _searchParams,
+    params
 }: {
     params: Promise<BlogRouteParams>;
-    searchParams: Promise<BlogSearchParams>;
 }) {
     const { slug } = await params;
     const post = await fetchPublishedPostBySlug(slug);
@@ -178,7 +173,7 @@ export default async function BlogPostPage({
         <>
             <ReadingProgressBar />
 
-            <main className="mx-auto max-w-6xl px-6 pt-28 pb-12">
+            <main className="site-container pt-28 pb-16">
                 <Link
                     href="/blog"
                     className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-accent transition-colors mb-8"
@@ -200,7 +195,7 @@ export default async function BlogPostPage({
                         </div>
                     )}
 
-                    <h1 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
+                    <h1 className="text-[clamp(1.9rem,4vw,3.3rem)] font-semibold tracking-[-0.04em] text-text-primary mb-4">
                         {post.title}
                     </h1>
 
@@ -238,7 +233,7 @@ export default async function BlogPostPage({
                     </div>
                 )}
 
-                <div className="flex gap-12">
+                <div className="flex gap-10">
                     <article className="flex-1 min-w-0">
                         <MDXRenderer content={post.content_mdx} />
                         <DeepLinkAnchors />
