@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { BlogPost } from "@/lib/supabase/types";
 
 interface BlogCardProps {
@@ -8,6 +9,7 @@ interface BlogCardProps {
 /**
  * Blog post card with frosted neumorphism styling.
  * Shows cover image, category, title, excerpt, and metadata.
+ * Uses Next.js Image with unoptimized for static export compatibility.
  */
 export function BlogCard({ post }: BlogCardProps) {
     return (
@@ -16,10 +18,12 @@ export function BlogCard({ post }: BlogCardProps) {
                 {/* Cover Image */}
                 {post.cover_image_url && (
                     <div className="relative h-48 overflow-hidden">
-                        <img
+                        <Image
                             src={post.cover_image_url}
                             alt={post.title}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            fill
+                            unoptimized
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-background/50 to-transparent" />
                     </div>

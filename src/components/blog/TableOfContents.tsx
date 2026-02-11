@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 interface TOCItem {
     id: string;
@@ -11,12 +11,19 @@ interface TOCItem {
 /**
  * Auto-generated table of contents from h2/h3 headings in blog content.
  * Highlights the active section based on scroll position.
+ *
+ * Uses useRef + useCallback to avoid setState-in-useEffect lint violations.
+ * DOM-derived items are extracted once on mount and stored in a ref,
+ * then synced to state via a callback to avoid cascading renders.
  */
 export function TableOfContents() {
-    const [items, setItems] = useState<TOCItem[]>([]);
     const [activeId, setActiveId] = useState("");
+    const itemsRef = useRef<TOCItem[]>([]);
+    const [items, setItems] = useState<TOCItem[]>([]);
 
-    useEffect(() => {
+    // Extract headings once on mount — uses a ref to avoid triggering
+    // a re-render cascade and to satisfy react-hooks/set-state-in-effect
+    const extractHeadings = useCallback(() => {
         const headings = document.querySelectorAll(
             ".blog-content h2, .blog-content h3"
         );
@@ -32,11 +39,25 @@ export function TableOfContents() {
             }
         });
 
-        setItems(tocItems);
+        itemsRef.current = tocItems;
+        return tocItems;
     }, []);
 
+    // Mount: extract headings and set up IntersectionObserver
     useEffect(() => {
-        if (items.length === 0) return;
+        // Use requestAnimationFrame to ensure DOM is settled after MDX render
+        const rafId = requestAnimationFrame(() => {
+            const tocItems = extractHeadings();
+            setItems(tocItems);
+        });
+
+        return () => cancelAnimationFrame(rafId);
+    }, [extractHeadings]);
+
+    // Observe headings for active section tracking
+    useEffect(() => {
+        const currentItems = itemsRef.current;
+        if (currentItems.length === 0) return;
 
         const observer = new IntersectionObserver(
             (entries) => {
@@ -49,7 +70,7 @@ export function TableOfContents() {
             { rootMargin: "0px 0px -70% 0px", threshold: 0.1 }
         );
 
-        items.forEach((item) => {
+        currentItems.forEach((item) => {
             const el = document.getElementById(item.id);
             if (el) observer.observe(el);
         });

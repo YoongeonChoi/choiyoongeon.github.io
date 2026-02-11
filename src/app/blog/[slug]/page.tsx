@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { MDXRenderer } from "@/components/blog/MDXRenderer";
@@ -152,14 +153,18 @@ export default async function BlogPostPage({
                     </div>
                 </header>
 
-                {/* Cover Image */}
+                {/* Cover Image — Next.js Image with unoptimized for static export */}
                 {post.cover_image_url && (
-                    <img
-                        src={post.cover_image_url}
-                        alt={post.title}
-                        className="w-full rounded-2xl mb-12 glass-card"
-                        loading="lazy"
-                    />
+                    <div className="relative w-full aspect-[2/1] mb-12 rounded-2xl overflow-hidden glass-card">
+                        <Image
+                            src={post.cover_image_url}
+                            alt={post.title}
+                            fill
+                            unoptimized
+                            className="object-cover"
+                            priority
+                        />
+                    </div>
                 )}
 
                 {/* Content + TOC */}

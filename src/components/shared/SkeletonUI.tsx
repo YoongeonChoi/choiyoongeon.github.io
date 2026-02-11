@@ -1,7 +1,16 @@
 /**
  * Skeleton loading components with Frosted Neumorphism styling.
  * Used as fallbacks while data is loading.
+ *
+ * All widths/opacities are deterministic (index-based) to avoid
+ * hydration mismatches from Math.random() in the render cycle.
  */
+
+// Deterministic opacity pattern for the grass skeleton cells
+const GRASS_OPACITY_PATTERN = [0.3, 0.5, 0.4, 0.7, 0.35, 0.55, 0.45, 0.65, 0.38, 0.6];
+
+// Deterministic width pattern for text skeleton lines
+const TEXT_WIDTH_PATTERN = ["100%", "92%", "78%", "85%", "68%", "95%", "72%", "88%"];
 
 export function SkeletonCard({ className = "" }: { className?: string }) {
     return (
@@ -23,7 +32,7 @@ export function SkeletonGrass({ className = "" }: { className?: string }) {
                     <div
                         key={i}
                         className="aspect-square rounded-sm bg-border-default"
-                        style={{ opacity: 0.3 + Math.random() * 0.5 }}
+                        style={{ opacity: GRASS_OPACITY_PATTERN[i % GRASS_OPACITY_PATTERN.length] }}
                     />
                 ))}
             </div>
@@ -58,7 +67,7 @@ export function SkeletonText({
                 <div
                     key={i}
                     className="h-3 bg-border-default rounded-lg"
-                    style={{ width: `${60 + Math.random() * 40}%` }}
+                    style={{ width: TEXT_WIDTH_PATTERN[i % TEXT_WIDTH_PATTERN.length] }}
                 />
             ))}
         </div>
