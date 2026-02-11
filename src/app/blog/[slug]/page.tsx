@@ -167,7 +167,7 @@ export default async function BlogPostPage({
         notFound();
     }
 
-    const githubUsername = process.env.NEXT_PUBLIC_GITHUB_USERNAME || "choiyoongeon";
+    const githubUsername = process.env.NEXT_PUBLIC_GITHUB_USERNAME || "YoongeonChoi";
 
     return (
         <>

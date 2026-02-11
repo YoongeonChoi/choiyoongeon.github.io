@@ -2,7 +2,7 @@ import { HomeContent } from "@/components/HomeContent";
 import { createServerClient } from "@/lib/supabase/server";
 import type { BlogPost } from "@/lib/supabase/types";
 
-const GITHUB_USERNAME = "choiyoongeon";
+const GITHUB_USERNAME = "YoongeonChoi";
 export const dynamic = "force-static";
 export const revalidate = false;
 

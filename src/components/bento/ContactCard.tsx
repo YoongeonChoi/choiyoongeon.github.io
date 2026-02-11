@@ -5,8 +5,8 @@ import { motion } from "framer-motion";
 const CONTACT_LINKS = [
   {
     label: "GitHub",
-    href: "https://github.com/choiyoongeon",
-    value: "@choiyoongeon",
+    href: "https://github.com/YoongeonChoi",
+    value: "@YoongeonChoi",
   },
   {
     label: "Email",

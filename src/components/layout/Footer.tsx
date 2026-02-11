@@ -11,7 +11,7 @@ const FOOTER_LINKS = [
     {
         title: "Connect",
         links: [
-            { href: "https://github.com/choiyoongeon", label: "GitHub", external: true },
+            { href: "https://github.com/YoongeonChoi", label: "GitHub", external: true },
         ],
     },
 ];

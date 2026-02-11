@@ -47,7 +47,7 @@ export function Navbar() {
               );
             })}
             <a
-              href="https://github.com/choiyoongeon"
+              href="https://github.com/YoongeonChoi"
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-xl border border-border-default bg-surface-overlay px-4 py-2 text-sm text-text-primary transition-all duration-300 hover:border-border-hover hover:text-accent"
@@ -104,7 +104,7 @@ export function Navbar() {
                 </Link>
               ))}
               <a
-                href="https://github.com/choiyoongeon"
+                href="https://github.com/YoongeonChoi"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-xl bg-accent px-4 py-3 text-center text-sm font-medium text-white"
