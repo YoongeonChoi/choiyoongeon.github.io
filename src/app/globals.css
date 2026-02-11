@@ -1,0 +1,215 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════
+   Nexus-PR: Frosted Neumorphism Design System
+   Tailwind CSS v4 — CSS-first @theme Configuration
+   ═══════════════════════════════════════════════════════ */
+
+/* ─── Base Variables (Light Mode) ─── */
+:root {
+  /* Background & Surface */
+  --background: #f0f2f5;
+  --foreground: #1a1a2e;
+  --surface: rgba(255, 255, 255, 0.6);
+  --surface-raised: rgba(255, 255, 255, 0.8);
+  --surface-overlay: rgba(255, 255, 255, 0.4);
+
+  /* Accent: Electric Indigo */
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-muted: rgba(99, 102, 241, 0.15);
+  --accent-glow: rgba(99, 102, 241, 0.4);
+
+  /* Secondary: Cyber Lime */
+  --secondary: #a3e635;
+  --secondary-hover: #bef264;
+  --secondary-muted: rgba(163, 230, 53, 0.15);
+
+  /* Neumorphism Shadows */
+  --shadow-neumorphic-light: 8px 8px 16px rgba(163, 170, 184, 0.5);
+  --shadow-neumorphic-dark: -8px -8px 16px rgba(255, 255, 255, 0.8);
+  --shadow-neumorphic-inset: inset 4px 4px 8px rgba(163, 170, 184, 0.3), inset -4px -4px 8px rgba(255, 255, 255, 0.6);
+
+  /* Glassmorphism */
+  --glass-blur: 20px;
+  --glass-border: rgba(255, 255, 255, 0.3);
+
+  /* Text */
+  --text-primary: #1a1a2e;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+
+  /* Borders */
+  --border-default: rgba(0, 0, 0, 0.06);
+  --border-hover: rgba(99, 102, 241, 0.3);
+
+  /* Contribution Grass Levels */
+  --grass-0: #ebedf0;
+  --grass-1: #c6e48b;
+  --grass-2: #7bc96f;
+  --grass-3: #239a3b;
+  --grass-4: #196127;
+}
+
+/* ─── Dark Mode Variables ─── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a1a;
+    --foreground: #e2e8f0;
+    --surface: rgba(30, 30, 60, 0.6);
+    --surface-raised: rgba(40, 40, 80, 0.8);
+    --surface-overlay: rgba(30, 30, 60, 0.4);
+
+    --shadow-neumorphic-light: 8px 8px 16px rgba(0, 0, 10, 0.6);
+    --shadow-neumorphic-dark: -8px -8px 16px rgba(50, 50, 90, 0.3);
+    --shadow-neumorphic-inset: inset 4px 4px 8px rgba(0, 0, 10, 0.4), inset -4px -4px 8px rgba(50, 50, 90, 0.2);
+
+    --glass-border: rgba(255, 255, 255, 0.08);
+
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+
+    --border-default: rgba(255, 255, 255, 0.06);
+    --border-hover: rgba(99, 102, 241, 0.4);
+
+    --grass-0: #161b22;
+    --grass-1: #0e4429;
+    --grass-2: #006d32;
+    --grass-3: #26a641;
+    --grass-4: #39d353;
+  }
+}
+
+/* ─── Tailwind v4 Theme Tokens ─── */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-overlay: var(--surface-overlay);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-muted: var(--accent-muted);
+  --color-accent-glow: var(--accent-glow);
+  --color-secondary: var(--secondary);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-secondary-muted: var(--secondary-muted);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-border-default: var(--border-default);
+  --color-border-hover: var(--border-hover);
+  --color-glass-border: var(--glass-border);
+
+  --color-grass-0: var(--grass-0);
+  --color-grass-1: var(--grass-1);
+  --color-grass-2: var(--grass-2);
+  --color-grass-3: var(--grass-3);
+  --color-grass-4: var(--grass-4);
+
+  --font-sans: var(--font-geist-sans), "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), "JetBrains Mono", "Fira Code", monospace;
+}
+
+/* ─── Base Styles ─── */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Frosted Neumorphism Utility Classes ─── */
+.glass-card {
+  background: var(--surface);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: 1.25rem;
+  box-shadow: var(--shadow-neumorphic-light), var(--shadow-neumorphic-dark);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  box-shadow:
+    var(--shadow-neumorphic-light),
+    var(--shadow-neumorphic-dark),
+    0 0 30px var(--accent-glow);
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+}
+
+.glass-card-raised {
+  background: var(--surface-raised);
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.5));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.5));
+  border: 1px solid var(--glass-border);
+  border-radius: 1.25rem;
+  box-shadow: var(--shadow-neumorphic-light), var(--shadow-neumorphic-dark);
+}
+
+.glass-inset {
+  box-shadow: var(--shadow-neumorphic-inset);
+  border-radius: 0.75rem;
+}
+
+/* ─── Accent Gradient Backgrounds ─── */
+.gradient-accent {
+  background: linear-gradient(135deg, var(--accent), var(--secondary));
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Reveal Animation ─── */
+.reveal-hidden {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── Reading Progress Bar ─── */
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--secondary));
+  z-index: 9999;
+  transition: width 0.1s ease-out;
+}
+
+/* ─── Scrollbar Styling ─── */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* ─── Selection Highlight ─── */
+::selection {
+  background: var(--accent-muted);
+  color: var(--accent);
+}
