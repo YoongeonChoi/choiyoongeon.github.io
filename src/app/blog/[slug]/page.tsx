@@ -1,111 +1,184 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createServerClient } from "@/lib/supabase/server";
+import { ContributionGrass } from "@/components/github/ContributionGrass";
 import { MDXRenderer } from "@/components/blog/MDXRenderer";
 import { ReadingProgressBar } from "@/components/blog/ReadingProgressBar";
 import { DeepLinkAnchors } from "@/components/blog/DeepLinkAnchors";
 import { TableOfContents } from "@/components/blog/TableOfContents";
-import Link from "next/link";
 import type { BlogPost } from "@/lib/supabase/types";
 
-// Required for static export: only render paths from generateStaticParams
+type BlogRouteParams = { slug: string };
+type BlogSearchParams = Record<string, string | string[] | undefined>;
+
 export const dynamicParams = false;
+export const dynamic = "force-static";
+export const revalidate = false;
 
-/**
- * Pre-render all published blog post slugs at build time.
- * Returns empty array when no posts exist in the database.
- *
- * NOTE: This may fail on Windows with non-ASCII project path characters
- * (e.g., Korean `바탕 화면`). Works correctly on Linux (GitHub Actions).
- */
-export async function generateStaticParams(): Promise<{ slug: string }[]> {
+const FALLBACK_SLUG = "offline";
+const BLOG_SELECT_FIELDS = [
+    "id",
+    "author_id",
+    "category_id",
+    "title",
+    "slug",
+    "excerpt",
+    "content_mdx",
+    "cover_image_url",
+    "tags",
+    "is_published",
+    "reading_time_minutes",
+    "published_at",
+    "created_at",
+    "updated_at",
+].join(",");
+
+const FALLBACK_POST: BlogPost = {
+    id: "00000000-0000-0000-0000-000000000000",
+    author_id: "00000000-0000-0000-0000-000000000000",
+    category_id: null,
+    title: "Blog is preparing content",
+    slug: FALLBACK_SLUG,
+    excerpt:
+        "The blog is currently in offline-safe mode. Publish at least one post to replace this fallback page.",
+    content_mdx: [
+        "## Offline-safe static page",
+        "",
+        "This page is generated as a reliable fallback for static export.",
+        "Once Supabase contains published posts, real post routes will be generated automatically.",
+    ].join("\n"),
+    cover_image_url: null,
+    tags: ["status", "fallback"],
+    is_published: true,
+    reading_time_minutes: 1,
+    published_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+};
+
+function getSupabaseRestConfig() {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+    const apiKey = serviceRoleKey || anonKey;
+
+    if (!supabaseUrl || !apiKey) {
+        return null;
+    }
+
+    return {
+        endpoint: `${supabaseUrl.replace(/\/$/, "")}/rest/v1`,
+        apiKey,
+    };
+}
+
+async function fetchFromSupabase<T>(pathWithQuery: string): Promise<T | null> {
+    const config = getSupabaseRestConfig();
+    if (!config) {
+        return null;
+    }
+
     try {
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        const response = await fetch(`${config.endpoint}/${pathWithQuery}`, {
+            headers: {
+                apikey: config.apiKey,
+                Authorization: `Bearer ${config.apiKey}`,
+                Accept: "application/json",
+            },
+            cache: "force-cache",
+        });
 
-        if (!supabaseUrl || !supabaseKey) return [];
+        if (!response.ok) {
+            return null;
+        }
 
-        const { createClient } = await import("@supabase/supabase-js");
-        const supabase = createClient(supabaseUrl, supabaseKey);
-
-        const { data, error } = await supabase
-            .from("blog_posts")
-            .select("slug")
-            .eq("is_published", true);
-
-        if (error || !data) return [];
-        return data.map((post: { slug: string }) => ({ slug: post.slug }));
+        return (await response.json()) as T;
     } catch {
+        return null;
+    }
+}
+
+async function fetchPublishedSlugs(): Promise<string[]> {
+    const rows = await fetchFromSupabase<Array<{ slug: string }>>(
+        "blog_posts?select=slug&is_published=eq.true&order=published_at.desc.nullslast"
+    );
+
+    if (!rows || rows.length === 0) {
         return [];
     }
+
+    return rows
+        .map((row) => row.slug)
+        .filter((slug): slug is string => typeof slug === "string" && slug.length > 0);
+}
+
+async function fetchPublishedPostBySlug(slug: string): Promise<BlogPost | null> {
+    if (slug === FALLBACK_SLUG) {
+        return FALLBACK_POST;
+    }
+
+    const encodedSlug = encodeURIComponent(slug);
+    const rows = await fetchFromSupabase<BlogPost[]>(
+        `blog_posts?select=${BLOG_SELECT_FIELDS}&slug=eq.${encodedSlug}&is_published=eq.true&limit=1`
+    );
+
+    if (!rows || rows.length === 0) {
+        return null;
+    }
+
+    return rows[0] ?? null;
+}
+
+export async function generateStaticParams(): Promise<BlogRouteParams[]> {
+    const slugs = await fetchPublishedSlugs();
+    if (slugs.length === 0) {
+        return [{ slug: FALLBACK_SLUG }];
+    }
+    return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({
     params,
+    searchParams: _searchParams,
 }: {
-    params: Promise<{ slug: string }>;
+    params: Promise<BlogRouteParams>;
+    searchParams: Promise<BlogSearchParams>;
 }): Promise<Metadata> {
     const { slug } = await params;
+    const post = await fetchPublishedPostBySlug(slug);
 
-    try {
-        const supabase = createServerClient();
-        const { data } = await supabase
-            .from("blog_posts")
-            .select("*")
-            .eq("slug", slug)
-            .eq("is_published", true)
-            .single();
-
-        if (data) {
-            const post = data as BlogPost;
-            return {
-                title: post.title,
-                description: post.excerpt || `Read ${post.title} on Nexus-PR`,
-            };
-        }
-    } catch {
-        // Fall through to default
+    if (!post) {
+        return { title: "Post Not Found", description: "This post is not available." };
     }
 
-    return { title: "Post Not Found" };
+    return {
+        title: post.title,
+        description: post.excerpt || `Read ${post.title} on Nexus-PR`,
+    };
 }
 
 export default async function BlogPostPage({
     params,
+    searchParams: _searchParams,
 }: {
-    params: Promise<{ slug: string }>;
+    params: Promise<BlogRouteParams>;
+    searchParams: Promise<BlogSearchParams>;
 }) {
     const { slug } = await params;
-
-    let post: BlogPost | null = null;
-
-    try {
-        const supabase = createServerClient();
-        const { data } = await supabase
-            .from("blog_posts")
-            .select("*")
-            .eq("slug", slug)
-            .eq("is_published", true)
-            .single();
-
-        if (data) {
-            post = data as BlogPost;
-        }
-    } catch {
-        // Fall through
-    }
+    const post = await fetchPublishedPostBySlug(slug);
 
     if (!post) {
         notFound();
     }
+
+    const githubUsername = process.env.NEXT_PUBLIC_GITHUB_USERNAME || "choiyoongeon";
 
     return (
         <>
             <ReadingProgressBar />
 
             <main className="mx-auto max-w-6xl px-6 pt-28 pb-12">
-                {/* Back link */}
                 <Link
                     href="/blog"
                     className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-accent transition-colors mb-8"
@@ -113,9 +186,8 @@ export default async function BlogPostPage({
                     ← Back to Blog
                 </Link>
 
-                {/* Header */}
                 <header className="mb-12">
-                    {post.tags.length > 0 && (
+                    {Array.isArray(post.tags) && post.tags.length > 0 && (
                         <div className="flex gap-2 mb-4 flex-wrap">
                             {post.tags.map((tag) => (
                                 <span
@@ -153,7 +225,6 @@ export default async function BlogPostPage({
                     </div>
                 </header>
 
-                {/* Cover Image — Next.js Image with unoptimized for static export */}
                 {post.cover_image_url && (
                     <div className="relative w-full aspect-[2/1] mb-12 rounded-2xl overflow-hidden glass-card">
                         <Image
@@ -167,7 +238,6 @@ export default async function BlogPostPage({
                     </div>
                 )}
 
-                {/* Content + TOC */}
                 <div className="flex gap-12">
                     <article className="flex-1 min-w-0">
                         <MDXRenderer content={post.content_mdx} />
@@ -175,6 +245,16 @@ export default async function BlogPostPage({
                     </article>
                     <TableOfContents />
                 </div>
+
+                <section className="mt-16 glass-card p-6">
+                    <h2 className="text-lg font-semibold text-text-primary mb-2">
+                        Interactive 3D GitHub Grass
+                    </h2>
+                    <p className="text-sm text-text-secondary mb-5">
+                        Explore my contribution history in frosted 2D and 3D view.
+                    </p>
+                    <ContributionGrass username={githubUsername} />
+                </section>
             </main>
         </>
     );
