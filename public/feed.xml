@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+  <channel>
+    <title>Yoongeon Choi Blog</title>
+    <link>https://yoongeonchoi.github.io</link>
+    <description>Security-first product engineering writing.</description>
+    <language>en-us</language>
+    
+    <item>
+      <title>Threat Modeling a Static Portfolio Site in 2026</title>
+      <link>https://yoongeonchoi.github.io/blog/static-sites-threat-model-2026</link>
+      <guid>https://yoongeonchoi.github.io/blog/static-sites-threat-model-2026</guid>
+      <pubDate>Sun, 01 Feb 2026 00:00:00 GMT</pubDate>
+      <description>How to threat-model a GitHub Pages portfolio and prioritize controls that actually matter.</description>
+    </item>
+
+    <item>
+      <title>Motion Without Performance Regret</title>
+      <link>https://yoongeonchoi.github.io/blog/motion-without-performance-regret</link>
+      <guid>https://yoongeonchoi.github.io/blog/motion-without-performance-regret</guid>
+      <pubDate>Tue, 20 Jan 2026 00:00:00 GMT</pubDate>
+      <description>A practical pattern for premium motion design that still clears strong Lighthouse budgets.</description>
+    </item>
+
+    <item>
+      <title>Case Study Format That Gets Technical Interviews</title>
+      <link>https://yoongeonchoi.github.io/blog/case-study-format-that-gets-interviews</link>
+      <guid>https://yoongeonchoi.github.io/blog/case-study-format-that-gets-interviews</guid>
+      <pubDate>Mon, 08 Dec 2025 00:00:00 GMT</pubDate>
+      <description>A repeatable portfolio case-study structure focused on role clarity, tradeoffs, and outcomes.</description>
+    </item>
+
+    <item>
+      <title>Secure Markdown Rendering: A Pragmatic Guide</title>
+      <link>https://yoongeonchoi.github.io/blog/secure-markdown-rendering-pragmatic-guide</link>
+      <guid>https://yoongeonchoi.github.io/blog/secure-markdown-rendering-pragmatic-guide</guid>
+      <pubDate>Sun, 02 Nov 2025 00:00:00 GMT</pubDate>
+      <description>Why markdown rendering pipelines fail, and how to harden them with sanitizer-first parsing.</description>
+    </item>
+  </channel>
+</rss>
