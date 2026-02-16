@@ -1,11 +1,15 @@
+import http from "node:http";
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import zlib from "node:zlib";
 
 const ROOT = process.cwd();
+const OUT_DIR = path.join(ROOT, "out");
 const TMP_DIR = path.join(ROOT, ".lighthouse");
 const PORT = 4173;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
+
 const routes = [
   { path: "/", report: "home.json" },
   { path: "/blog/", report: "blog.json" },
@@ -16,6 +20,23 @@ const thresholds = {
   accessibility: 0.95,
   "best-practices": 0.95,
   seo: 0.95,
+};
+
+const contentTypes = {
+  ".html": "text/html; charset=utf-8",
+  ".js": "application/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".xml": "application/xml; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+  ".ico": "image/x-icon",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+  ".txt": "text/plain; charset=utf-8",
 };
 
 function run(command, args, options = {}) {
@@ -36,8 +57,88 @@ function run(command, args, options = {}) {
   });
 }
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function isCompressible(contentType) {
+  return (
+    contentType.startsWith("text/") ||
+    contentType.includes("javascript") ||
+    contentType.includes("json") ||
+    contentType.includes("xml")
+  );
+}
+
+function resolveRequestPath(requestUrl) {
+  const url = new URL(requestUrl, BASE_URL);
+  const decodedPath = decodeURIComponent(url.pathname);
+  const normalized = path.normalize(decodedPath).replace(/^(\.\.[/\\])+/, "");
+  return normalized;
+}
+
+function resolveFilePath(requestPath) {
+  let filePath = path.join(OUT_DIR, requestPath);
+
+  if (requestPath.endsWith("/")) {
+    filePath = path.join(filePath, "index.html");
+  } else if (!path.extname(filePath)) {
+    const asDir = path.join(filePath, "index.html");
+    if (fs.existsSync(asDir)) {
+      filePath = asDir;
+    }
+  }
+
+  if (filePath.startsWith(OUT_DIR)) {
+    return filePath;
+  }
+
+  return path.join(OUT_DIR, "404.html");
+}
+
+function createStaticServer() {
+  return http.createServer((req, res) => {
+    try {
+      const requestPath = resolveRequestPath(req.url ?? "/");
+      let filePath = resolveFilePath(requestPath);
+
+      if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+        filePath = path.join(OUT_DIR, "404.html");
+        res.statusCode = 404;
+      }
+
+      const raw = fs.readFileSync(filePath);
+      const ext = path.extname(filePath).toLowerCase();
+      const contentType = contentTypes[ext] ?? "application/octet-stream";
+      const encoding = req.headers["accept-encoding"] ?? "";
+
+      let body = raw;
+      let contentEncoding;
+
+      if (isCompressible(contentType) && raw.length > 1024) {
+        if (encoding.includes("br")) {
+          body = zlib.brotliCompressSync(raw);
+          contentEncoding = "br";
+        } else if (encoding.includes("gzip")) {
+          body = zlib.gzipSync(raw);
+          contentEncoding = "gzip";
+        }
+      }
+
+      res.setHeader("Content-Type", contentType);
+      res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+      if (contentEncoding) {
+        res.setHeader("Content-Encoding", contentEncoding);
+      }
+      res.setHeader("Content-Length", String(body.length));
+
+      if (req.method === "HEAD") {
+        res.end();
+        return;
+      }
+
+      res.end(body);
+    } catch {
+      res.statusCode = 500;
+      res.end("Internal Server Error");
+    }
+  });
 }
 
 function readScores(reportPath) {
@@ -52,18 +153,27 @@ function readScores(reportPath) {
   return { url: data.finalUrl, scores };
 }
 
+function listen(server, port) {
+  return new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(port, "127.0.0.1", () => resolve());
+  });
+}
+
+function close(server) {
+  return new Promise((resolve) => {
+    server.close(() => resolve());
+  });
+}
+
 async function main() {
   fs.rmSync(TMP_DIR, { recursive: true, force: true });
   fs.mkdirSync(TMP_DIR, { recursive: true });
 
-  const server = spawn("npx", ["-y", "serve", "-s", "out", "-l", String(PORT)], {
-    cwd: ROOT,
-    stdio: "ignore",
-  });
+  const server = createStaticServer();
+  await listen(server, PORT);
 
   try {
-    await sleep(2500);
-
     for (const route of routes) {
       const outputPath = path.join(TMP_DIR, route.report);
       await run("npx", [
@@ -100,7 +210,7 @@ async function main() {
       throw new Error("Lighthouse thresholds not met");
     }
   } finally {
-    server.kill("SIGINT");
+    await close(server);
   }
 }
 

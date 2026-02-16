@@ -8,7 +8,7 @@ export const siteConfig = {
   locale: "en_US",
   email: "choeyungeoni@gmail.com",
   github: "https://github.com/YoongeonChoi",
-  linkedin: "https://www.linkedin.com/in/likeimperia%C4%ABhaln-undefined-83b434339",
+  linkedin: "https://www.linkedin.com/in/yoongeon-choi-83b434339",
   language: "en",
 };
 
