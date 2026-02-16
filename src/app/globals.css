@@ -15,6 +15,8 @@
   --border: rgba(15, 23, 36, 0.12);
   --ring: rgba(212, 85, 45, 0.48);
   --ok: #116149;
+  --btn-primary-bg: #0f1724;
+  --btn-primary-fg: #ffffff;
 
   --radius-s: 0.65rem;
   --radius-m: 1.1rem;
@@ -48,6 +50,8 @@
     --border: rgba(255, 255, 255, 0.12);
     --ring: rgba(255, 156, 126, 0.52);
     --ok: #53cfac;
+    --btn-primary-bg: #ef7b52;
+    --btn-primary-fg: #0c1118;
   }
 }
 
@@ -302,8 +306,14 @@ img {
 }
 
 .btn-primary {
-  background: var(--heading);
-  color: #fff;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-fg);
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  color: var(--btn-primary-fg);
+  background: color-mix(in srgb, var(--btn-primary-bg) 90%, #000 10%);
 }
 
 .btn-secondary {
@@ -669,6 +679,77 @@ img {
   border-radius: var(--radius-l);
   padding: var(--space-l);
   background: var(--surface);
+}
+
+.timeline {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1.15rem;
+}
+
+.timeline-item {
+  position: relative;
+  padding-left: 2.1rem;
+  padding-bottom: 1.05rem;
+}
+
+.timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  left: 0.4rem;
+  top: 0.5rem;
+  width: 0.78rem;
+  height: 0.78rem;
+  border-radius: 999px;
+  border: 2px solid var(--accent);
+  background: var(--surface-strong);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.timeline-item::after {
+  content: "";
+  position: absolute;
+  left: 0.78rem;
+  top: 1.25rem;
+  width: 2px;
+  bottom: -0.25rem;
+  background: color-mix(in srgb, var(--accent) 38%, var(--border));
+}
+
+.timeline-item:last-child::after {
+  display: none;
+}
+
+.timeline-year {
+  margin: 0;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  color: var(--text-muted);
+}
+
+.timeline-title {
+  margin: 0.15rem 0 0.35rem;
+  font-size: 1.12rem;
+  font-family: var(--font-body), "Space Grotesk", sans-serif;
+  font-weight: 700;
+}
+
+.timeline-copy {
+  margin: 0;
+  color: var(--text);
+}
+
+.timeline-note {
+  margin-top: 0.95rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
 }
 
 .site-footer {

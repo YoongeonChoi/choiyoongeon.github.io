@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { resumeData } from "@/site/data/resume";
+import { siteConfig } from "@/site/config";
 
 export const metadata: Metadata = {
   title: "Resume",
@@ -17,7 +18,7 @@ export default function ResumePage() {
         <a href="/resume.pdf" className="btn btn-primary" download>
           Download PDF
         </a>
-        <a href="mailto:contact@yoongeonchoi.dev" className="btn btn-secondary">
+        <a href={`mailto:${siteConfig.email}`} className="btn btn-secondary">
           Request detailed CV
         </a>
       </div>

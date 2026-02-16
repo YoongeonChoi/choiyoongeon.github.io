@@ -15,13 +15,11 @@ export default async function HomePage() {
       <section className="hero site-container">
         <div className="hero-grid">
           <Reveal>
-            <p className="eyebrow">Senior Product Engineer</p>
-            <h1 className="hero-title">
-              Secure products, <span className="accent">clear impact</span>, memorable UX.
-            </h1>
+            <p className="eyebrow">One line by GPT</p>
+            <h1 className="hero-title">He is a man who refuses to stay the same.</h1>
             <p className="hero-copy">
-              I design and ship static-first, high-trust web experiences that balance
-              storytelling, performance, and operational security.
+              Asked GPT to describe me in one sentence, this was the answer:
+              &nbsp;&quot;He is a man who refuses to stay the same.&quot;
             </p>
             <PrimaryCta />
             <SignalTicker />

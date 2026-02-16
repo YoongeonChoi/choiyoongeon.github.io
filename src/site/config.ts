@@ -6,9 +6,9 @@ export const siteConfig = {
     "Senior product engineer building secure, high-performance web products with clear business impact.",
   url: "https://yoongeonchoi.github.io",
   locale: "en_US",
-  email: "contact@yoongeonchoi.dev",
+  email: "choeyungeoni@gmail.com",
   github: "https://github.com/YoongeonChoi",
-  linkedin: "https://www.linkedin.com/in/yoongeonchoi",
+  linkedin: "https://www.linkedin.com/in/likeimperia%C4%ABhaln-undefined-83b434339",
   language: "en",
 };
 

@@ -21,7 +21,7 @@ export function Header() {
       <div className="site-container site-header-inner">
         <Link href="/" className="brand-mark" prefetch={false}>
           <span className="brand-initial">{siteConfig.shortName}</span>
-          <span className="brand-text">Product Engineering Portfolio</span>
+          <span className="brand-text">Yoongeon&apos;s Engineering Portfolio</span>
         </Link>
 
         <button
