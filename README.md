@@ -1,36 +1,106 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# YoongeonChoi.github.io
 
-## Getting Started
+Static, security-hardened personal PR/portfolio site built with Next.js static export for GitHub Pages.
 
-First, run the development server:
+## Features
+- Case-study-first portfolio (`/projects` + project detail routes)
+- Writer-friendly Markdown blog with:
+  - index and post pages
+  - tags and categories
+  - syntax highlighting
+  - RSS feed (`/feed.xml`)
+- Resume page + downloadable PDF (`/resume` + `/resume.pdf`)
+- Contact conversion path (`/contact`)
+- SEO essentials:
+  - per-route metadata
+  - OpenGraph/Twitter defaults
+  - `sitemap.xml`
+  - `robots.txt`
+- Security hardening:
+  - sanitized Markdown pipeline
+  - static anti-pattern security scanner
+  - dependency audit gate
+  - GitHub Actions CI + Lighthouse threshold checks
 
+## Tech Stack
+- Next.js (App Router) with `output: "export"`
+- TypeScript
+- Tailwind CSS v4 (global tokenized CSS system)
+- Unified/Remark/Rehype Markdown pipeline
+
+## Project Structure
+- `content/blog/` Markdown blog posts
+- `content/projects/` Markdown project case studies
+- `src/app/` routes and metadata endpoints
+- `src/site/` design system components and site config
+- `src/lib/content/` content loading + markdown rendering
+- `scripts/` RSS generation, security check, Lighthouse check
+- `docs/` security/design/research documentation
+
+## Local Development
+
+### 1) Install dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm ci
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2) Run dev server
+```bash
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3) Quality checks
+```bash
+npm run lint
+npm run typecheck
+npm run security:check
+npm run audit
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4) Full verification (same as deploy gate)
+```bash
+npm run verify
+```
 
-## Learn More
+### 5) Lighthouse threshold check (mobile emulation)
+```bash
+npm run lighthouse:check
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Build and Export
+```bash
+npm run build
+```
+This runs:
+1. `generate:rss` (creates `public/feed.xml`)
+2. `next build` static export to `out/`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## GitHub Pages Deployment
+Deployment uses `.github/workflows/deploy.yml`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Pipeline steps:
+1. `npm ci`
+2. `npm run verify`
+3. add `out/404.html` fallback + `.nojekyll`
+4. upload `out/` artifact
+5. deploy with `actions/deploy-pages`
 
-## Deploy on Vercel
+## CI
+`.github/workflows/ci.yml` runs on PR/push:
+- lint
+- typecheck
+- security static checks
+- dependency audit
+- build
+- Lighthouse threshold validation
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Security Notes
+- Threat model and findings: `docs/security-audit.md`
+- Design and motion/a11y rules: `docs/design-system.md`
+- 2026 portfolio checklist and citations: `docs/portfolio-checklist-2026.md`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Content Editing
+- Add/edit posts in `content/blog/*.md`
+- Add/edit projects in `content/projects/*.md`
+- Update site metadata in `src/site/config.ts`
+- Update resume content in `src/site/data/resume.ts`
