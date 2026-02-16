@@ -1,34 +1,56 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import { BackgroundEffects } from "@/components/motion/BackgroundEffects";
+import { Fraunces, Space_Grotesk } from "next/font/google";
+import { Footer } from "@/site/components/Footer";
+import { Header } from "@/site/components/Header";
+import { MotionBackdrop } from "@/site/components/MotionBackdrop";
+import { contentSecurityPolicy } from "@/lib/security/csp";
+import { siteConfig } from "@/site/config";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const display = Fraunces({
   subsets: ["latin"],
+  variable: "--font-display",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const body = Space_Grotesk({
   subsets: ["latin"],
+  variable: "--font-body",
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteConfig.url),
   title: {
-    default: "Nexus-PR | Yoongeon Choi",
-    template: "%s | Nexus-PR",
+    default: siteConfig.title,
+    template: "%s | Yoongeon Choi",
   },
-  description:
-    "Zero-trust personal PR & blog platform. Full-stack developer specializing in secure, performant web applications.",
-  metadataBase: new URL("https://choiyoongeon.github.io"),
+  description: siteConfig.description,
+  alternates: {
+    canonical: "/",
+    types: {
+      "application/rss+xml": [{ title: "RSS Feed", url: "/feed.xml" }],
+    },
+  },
   openGraph: {
-    title: "Nexus-PR | Yoongeon Choi",
-    description:
-      "Zero-trust personal PR & blog platform built with Next.js and Supabase.",
+    title: siteConfig.title,
+    description: siteConfig.description,
+    url: siteConfig.url,
+    siteName: siteConfig.title,
+    locale: siteConfig.locale,
     type: "website",
-    locale: "en_US",
+    images: [
+      {
+        url: "/og-default.svg",
+        width: 1200,
+        height: 630,
+        alt: siteConfig.title,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.title,
+    description: siteConfig.description,
+    images: ["/og-default.svg"],
   },
   robots: {
     index: true,
@@ -36,26 +58,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={`${display.variable} ${body.variable}`}>
       <head>
-        {/* Content Security Policy */}
-        <meta
-          httpEquiv="Content-Security-Policy"
-          content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.github.com; frame-src 'none'; object-src 'none'; base-uri 'self';"
-        />
+        <meta httpEquiv="Content-Security-Policy" content={contentSecurityPolicy} />
+        <meta httpEquiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+        <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
+        <meta httpEquiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()" />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
-      >
-        <BackgroundEffects />
-        <Navbar />
-        <div className="flex-1">{children}</div>
+      <body>
+        <a href="#main-content" className="skip-link">
+          Skip to content
+        </a>
+        <MotionBackdrop />
+        <Header />
+        <main id="main-content">{children}</main>
         <Footer />
       </body>
     </html>

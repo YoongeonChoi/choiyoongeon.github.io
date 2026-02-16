@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" fill="#0f1724"/>
+  <circle cx="1010" cy="90" r="220" fill="#d4552d" fill-opacity="0.28"/>
+  <circle cx="160" cy="560" r="240" fill="#53cfac" fill-opacity="0.2"/>
+  <text x="96" y="250" fill="#f8fafc" font-family="Fraunces, serif" font-size="84" font-weight="700">Yoongeon Choi</text>
+  <text x="96" y="334" fill="#f8fafc" font-family="Space Grotesk, sans-serif" font-size="46" opacity="0.9">Senior Product Engineer</text>
+  <text x="96" y="398" fill="#f8fafc" font-family="Space Grotesk, sans-serif" font-size="34" opacity="0.75">Secure systems · Measurable outcomes · Motion UX</text>
+</svg>
