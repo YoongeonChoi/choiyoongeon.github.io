@@ -46,6 +46,7 @@ function readDirectoryFiles(directory: string): string[] {
 
   return fs
     .readdirSync(directory)
+    .filter((file) => !file.startsWith("_"))
     .filter((file) => file.endsWith(".md") || file.endsWith(".mdx"));
 }
 

@@ -9,10 +9,11 @@ const OUT_DIR = path.join(ROOT, "out");
 const TMP_DIR = path.join(ROOT, ".lighthouse");
 const PORT = 4173;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
+const RUNS_PER_ROUTE = Number(process.env.LIGHTHOUSE_RUNS ?? "3");
 
 const routes = [
-  { path: "/", report: "home.json" },
-  { path: "/blog/", report: "blog.json" },
+  { path: "/", key: "home" },
+  { path: "/blog/", key: "blog" },
 ];
 
 const thresholds = {
@@ -93,6 +94,8 @@ function resolveFilePath(requestPath) {
 }
 
 function createStaticServer() {
+  const payloadCache = new Map();
+
   return http.createServer((req, res) => {
     try {
       const requestPath = resolveRequestPath(req.url ?? "/");
@@ -103,37 +106,50 @@ function createStaticServer() {
         res.statusCode = 404;
       }
 
-      const raw = fs.readFileSync(filePath);
       const ext = path.extname(filePath).toLowerCase();
       const contentType = contentTypes[ext] ?? "application/octet-stream";
-      const encoding = req.headers["accept-encoding"] ?? "";
+      const acceptEncoding = req.headers["accept-encoding"] ?? "";
 
-      let body = raw;
-      let contentEncoding;
+      const cacheKey = `${filePath}::${acceptEncoding.includes("br") ? "br" : acceptEncoding.includes("gzip") ? "gzip" : "identity"}`;
+      let cached = payloadCache.get(cacheKey);
 
-      if (isCompressible(contentType) && raw.length > 1024) {
-        if (encoding.includes("br")) {
-          body = zlib.brotliCompressSync(raw);
-          contentEncoding = "br";
-        } else if (encoding.includes("gzip")) {
-          body = zlib.gzipSync(raw);
-          contentEncoding = "gzip";
+      if (!cached) {
+        const raw = fs.readFileSync(filePath);
+        let body = raw;
+        let contentEncoding;
+
+        if (isCompressible(contentType) && raw.length > 1024) {
+          if (acceptEncoding.includes("br")) {
+            body = zlib.brotliCompressSync(raw);
+            contentEncoding = "br";
+          } else if (acceptEncoding.includes("gzip")) {
+            body = zlib.gzipSync(raw);
+            contentEncoding = "gzip";
+          }
         }
+
+        cached = {
+          body,
+          contentType,
+          contentEncoding,
+        };
+
+        payloadCache.set(cacheKey, cached);
       }
 
-      res.setHeader("Content-Type", contentType);
+      res.setHeader("Content-Type", cached.contentType);
       res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
-      if (contentEncoding) {
-        res.setHeader("Content-Encoding", contentEncoding);
+      if (cached.contentEncoding) {
+        res.setHeader("Content-Encoding", cached.contentEncoding);
       }
-      res.setHeader("Content-Length", String(body.length));
+      res.setHeader("Content-Length", String(cached.body.length));
 
       if (req.method === "HEAD") {
         res.end();
         return;
       }
 
-      res.end(body);
+      res.end(cached.body);
     } catch {
       res.statusCode = 500;
       res.end("Internal Server Error");
@@ -143,14 +159,15 @@ function createStaticServer() {
 
 function readScores(reportPath) {
   const data = JSON.parse(fs.readFileSync(reportPath, "utf8"));
-  const scores = {
-    performance: data.categories.performance.score,
-    accessibility: data.categories.accessibility.score,
-    "best-practices": data.categories["best-practices"].score,
-    seo: data.categories.seo.score,
+  return {
+    url: data.finalUrl,
+    scores: {
+      performance: data.categories.performance.score,
+      accessibility: data.categories.accessibility.score,
+      "best-practices": data.categories["best-practices"].score,
+      seo: data.categories.seo.score,
+    },
   };
-
-  return { url: data.finalUrl, scores };
 }
 
 function listen(server, port) {
@@ -166,6 +183,22 @@ function close(server) {
   });
 }
 
+function median(values) {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0
+    ? (sorted[mid - 1] + sorted[mid]) / 2
+    : sorted[mid];
+}
+
+function formatSample(values) {
+  return values.map((value) => Math.round(value * 100)).join(", ");
+}
+
+async function warmup(routePath) {
+  await fetch(`${BASE_URL}${routePath}`);
+}
+
 async function main() {
   fs.rmSync(TMP_DIR, { recursive: true, force: true });
   fs.mkdirSync(TMP_DIR, { recursive: true });
@@ -174,32 +207,51 @@ async function main() {
   await listen(server, PORT);
 
   try {
-    for (const route of routes) {
-      const outputPath = path.join(TMP_DIR, route.report);
-      await run("npx", [
-        "-y",
-        "lighthouse",
-        `${BASE_URL}${route.path}`,
-        "--quiet",
-        "--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage",
-        "--only-categories=performance,accessibility,best-practices,seo",
-        "--output=json",
-        `--output-path=${outputPath}`,
-      ]);
-    }
-
     let failed = false;
 
     for (const route of routes) {
-      const reportPath = path.join(TMP_DIR, route.report);
-      const { url, scores } = readScores(reportPath);
-      console.log(`\nLighthouse: ${url}`);
+      await warmup(route.path);
 
-      for (const [category, value] of Object.entries(scores)) {
+      const runs = [];
+
+      for (let i = 0; i < RUNS_PER_ROUTE; i += 1) {
+        const reportName = `${route.key}.run${i + 1}.json`;
+        const outputPath = path.join(TMP_DIR, reportName);
+
+        await run("npx", [
+          "-y",
+          "lighthouse",
+          `${BASE_URL}${route.path}`,
+          "--quiet",
+          "--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage",
+          "--only-categories=performance,accessibility,best-practices,seo",
+          "--output=json",
+          `--output-path=${outputPath}`,
+        ]);
+
+        runs.push(readScores(outputPath));
+      }
+
+      // Keep a stable canonical report name for debugging/tooling compatibility.
+      fs.copyFileSync(
+        path.join(TMP_DIR, `${route.key}.run1.json`),
+        path.join(TMP_DIR, `${route.key}.json`)
+      );
+
+      const url = runs[0]?.url ?? `${BASE_URL}${route.path}`;
+      console.log(`\nLighthouse (median of ${RUNS_PER_ROUTE} runs): ${url}`);
+
+      for (const category of Object.keys(thresholds)) {
+        const samples = runs.map((runResult) => runResult.scores[category]);
+        const value = median(samples);
         const pct = Math.round(value * 100);
         const min = Math.round(thresholds[category] * 100);
         const mark = value >= thresholds[category] ? "PASS" : "FAIL";
-        console.log(`  ${category}: ${pct} (target ${min}) ${mark}`);
+
+        console.log(
+          `  ${category}: ${pct} (target ${min}) ${mark} | samples: [${formatSample(samples)}]`
+        );
+
         if (value < thresholds[category]) {
           failed = true;
         }
