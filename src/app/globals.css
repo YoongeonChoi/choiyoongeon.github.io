@@ -358,33 +358,68 @@ img {
   color: var(--text-muted);
 }
 
-.signal-ticker {
-  overflow: hidden;
+/* signal-ticker/signal-track removed — replaced by SignalVisualizer */
+
+/* ─── Signal Visualizer ─── */
+
+.signal-visualizer {
+  position: relative;
+  margin-top: var(--space-m);
   border: 1px solid var(--border);
-  border-radius: var(--radius-m);
-  background: var(--surface);
-  margin-top: var(--space-s);
+  border-radius: var(--radius-l);
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
+  overflow: hidden;
+  height: clamp(100px, 15vw, 160px);
 }
 
-.signal-track {
+.signal-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.signal-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 0.65rem 0.85rem;
+  pointer-events: none;
+}
+
+.signal-label {
   display: inline-flex;
-  min-width: max-content;
-  gap: 2rem;
-  padding: 0.7rem 1.2rem;
-  animation: ticker 25s linear infinite;
-  font-size: 0.79rem;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.18em;
   color: var(--text-muted);
+  opacity: 0.7;
 }
 
-@keyframes ticker {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-33.33%);
-  }
+.signal-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.4); }
+}
+
+.signal-freq {
+  font-size: 0.65rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  opacity: 0.6;
 }
 
 .cta-row {
@@ -1227,10 +1262,18 @@ img {
     gap: var(--space-m);
   }
 
-  .signal-track {
-    font-size: 0.7rem;
-    padding: 0.55rem 0.8rem;
-    gap: 1.2rem;
+  .signal-visualizer {
+    border-radius: var(--radius-m);
+    height: 80px;
+  }
+
+  .signal-overlay {
+    padding: 0.4rem 0.6rem;
+  }
+
+  .signal-label,
+  .signal-freq {
+    font-size: 0.55rem;
   }
 
   .section {
@@ -1324,10 +1367,6 @@ html {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-  }
-
-  .signal-track {
-    animation: none;
   }
 
   .content-card:hover,

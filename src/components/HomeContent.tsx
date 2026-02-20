@@ -20,6 +20,7 @@ import { LatestPostsCard } from "@/components/bento/LatestPostsCard";
 import { ContactCard } from "@/components/bento/ContactCard";
 import { StatsCard } from "@/components/bento/StatsCard";
 import { ContributionGrass } from "@/components/github/ContributionGrass";
+import { SignalVisualizer } from "@/components/motion/SignalVisualizer";
 import type { BlogPost } from "@/lib/supabase/types";
 
 interface GitHubGrassCardProps {
@@ -101,30 +102,7 @@ function SpatialBentoSection({
   );
 }
 
-function MotionBand({ motionEnergy }: { motionEnergy: number }) {
-  const repeated = Array.from({ length: 8 }, (_, index) => (
-    <span key={index} className="mx-4 inline-block">
-      KINETIC SYSTEM
-    </span>
-  ));
-
-  return (
-    <div className="mt-6 md:mt-8 overflow-hidden rounded-xl md:rounded-2xl border border-[var(--border)] bg-[var(--surface)] py-2.5 md:py-3">
-      <motion.p
-        animate={{ x: ["0%", "-50%"] }}
-        transition={{
-          duration: 18 - motionEnergy * 8,
-          repeat: Number.POSITIVE_INFINITY,
-          ease: "linear",
-        }}
-        className="whitespace-nowrap text-[10px] md:text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]"
-      >
-        {repeated}
-        {repeated}
-      </motion.p>
-    </div>
-  );
-}
+/* MotionBand removed — replaced by SignalVisualizer */
 
 /**
  * Home page client component with the Bento Grid layout.
@@ -256,7 +234,7 @@ export function HomeContent({
         </motion.div>
       </section>
 
-      <MotionBand motionEnergy={motionEnergy} />
+      <SignalVisualizer energy={motionEnergy} />
 
       <SpatialBentoSection
         scrollYProgress={scrollYProgress}
