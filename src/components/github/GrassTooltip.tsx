@@ -85,7 +85,7 @@ export function SVGGrass({ weeks }: SVGGrassProps) {
     const svgHeight = 7 * (cellSize + gap);
 
     return (
-        <div className="relative">
+        <div className="relative overflow-x-auto overflow-y-hidden -mx-2 px-2" style={{ WebkitOverflowScrolling: "touch" }}>
             <GrassTooltip
                 day={hoveredDay}
                 position={tooltipPos}
@@ -93,7 +93,8 @@ export function SVGGrass({ weeks }: SVGGrassProps) {
             />
             <svg
                 viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-                className="w-full h-auto"
+                className="h-auto"
+                style={{ minWidth: `${Math.max(svgWidth * 0.6, 600)}px`, width: "100%" }}
                 onMouseLeave={() => setHoveredDay(null)}
             >
                 {weeks.map((week, weekIdx) =>

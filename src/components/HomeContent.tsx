@@ -67,7 +67,7 @@ function SpatialBentoSection({
         scale: gridScale,
         transformPerspective: 1400,
       }}
-      className="mt-[clamp(2rem,6vw,5.2rem)]"
+      className="mt-[clamp(1.5rem,4vw,5.2rem)]"
     >
       <BentoGrid>
         <BentoCard delay={1} depth={0.02}>
@@ -109,7 +109,7 @@ function MotionBand({ motionEnergy }: { motionEnergy: number }) {
   ));
 
   return (
-    <div className="mt-8 overflow-hidden rounded-2xl border border-border-default bg-surface-overlay py-3">
+    <div className="mt-6 md:mt-8 overflow-hidden rounded-xl md:rounded-2xl border border-[var(--border)] bg-[var(--surface)] py-2.5 md:py-3">
       <motion.p
         animate={{ x: ["0%", "-50%"] }}
         transition={{
@@ -117,7 +117,7 @@ function MotionBand({ motionEnergy }: { motionEnergy: number }) {
           repeat: Number.POSITIVE_INFINITY,
           ease: "linear",
         }}
-        className="whitespace-nowrap text-xs uppercase tracking-[0.24em] text-text-secondary"
+        className="whitespace-nowrap text-[10px] md:text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]"
       >
         {repeated}
         {repeated}
@@ -188,16 +188,16 @@ export function HomeContent({
   );
 
   return (
-    <main ref={containerRef} className="site-container pt-28 pb-16 md:pb-20">
-      <section className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+    <main ref={containerRef} className="site-container pt-20 pb-12 md:pt-28 md:pb-20">
+      <section className="grid gap-4 md:gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
         <motion.section
           style={{ y: eyebrowY }}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-3"
+          className="mb-2 md:mb-3"
         >
-          <p className="inline-flex items-center gap-2 rounded-full border border-border-default bg-surface-overlay px-4 py-2 text-xs font-medium uppercase tracking-[0.18em] text-text-secondary">
+          <p className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-[10px] md:px-4 md:py-2 md:text-xs font-medium uppercase tracking-[0.18em] text-[var(--text-muted)]">
             Nexus-PR Motion System 2026
           </p>
         </motion.section>
@@ -205,19 +205,19 @@ export function HomeContent({
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.75, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-          className="hidden rounded-2xl border border-border-default bg-surface-overlay px-4 py-3 text-right lg:block"
+          className="hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-right lg:block"
         >
-          <p className="text-[11px] uppercase tracking-[0.18em] text-text-muted">Focus</p>
-          <p className="mt-1 text-sm text-text-secondary">Spatial UI · Soft Physics · 3D Sync</p>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--text-muted)]">Focus</p>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">Spatial UI · Soft Physics · 3D Sync</p>
         </motion.div>
       </section>
 
-      <motion.section style={kineticStyle} className="relative mb-4 md:mb-5">
+      <motion.section style={kineticStyle} className="relative mb-3 md:mb-5">
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-6xl text-[var(--heading-xl)] leading-[0.88] font-semibold tracking-[-0.05em] text-text-primary [transform-style:preserve-3d]"
+          className="max-w-6xl text-[var(--heading-xl)] leading-[0.88] font-semibold tracking-[-0.04em] text-[var(--heading)] [transform-style:preserve-3d]"
         >
           <span
             ref={titleRef}
@@ -229,12 +229,12 @@ export function HomeContent({
         </motion.h1>
       </motion.section>
 
-      <section className="grid gap-6 md:grid-cols-[1.3fr_0.7fr] md:items-end">
+      <section className="grid gap-4 md:gap-6 md:grid-cols-[1.3fr_0.7fr] md:items-end">
         <motion.p
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-3xl text-[clamp(1rem,0.7rem+1.2vw,1.4rem)] text-text-secondary"
+          className="max-w-3xl text-[clamp(0.92rem,0.7rem+1vw,1.4rem)] text-[var(--text-muted)] leading-relaxed"
         >
           Plus-X inspired premium minimalism, kinetic typography, and synchronized 3D
           contribution landscapes deliver one coherent UI/UX language across mobile and desktop.
@@ -246,12 +246,12 @@ export function HomeContent({
           className="grid grid-cols-2 gap-2"
         >
           <div className="glass-inset px-3 py-2 text-center">
-            <p className="text-[11px] uppercase tracking-[0.12em] text-text-muted">Performance</p>
-            <p className="mt-1 text-sm text-text-primary">120fps-tuned</p>
+            <p className="text-[10px] md:text-[11px] uppercase tracking-[0.12em] text-[var(--text-muted)]">Performance</p>
+            <p className="mt-1 text-xs md:text-sm text-[var(--text)]">120fps-tuned</p>
           </div>
           <div className="glass-inset px-3 py-2 text-center">
-            <p className="text-[11px] uppercase tracking-[0.12em] text-text-muted">Responsive</p>
-            <p className="mt-1 text-sm text-text-primary">Container-first</p>
+            <p className="text-[10px] md:text-[11px] uppercase tracking-[0.12em] text-[var(--text-muted)]">Responsive</p>
+            <p className="mt-1 text-xs md:text-sm text-[var(--text)]">Container-first</p>
           </div>
         </motion.div>
       </section>
