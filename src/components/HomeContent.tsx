@@ -234,7 +234,7 @@ export function HomeContent({
         </motion.div>
       </section>
 
-      <SignalVisualizer energy={motionEnergy} />
+      <SignalVisualizer />
 
       <SpatialBentoSection
         scrollYProgress={scrollYProgress}

@@ -1,220 +1,170 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
 import { useReducedMotion } from "framer-motion";
 
-interface SignalVisualizerProps {
-  energy?: number;
-}
+const RINGS = [
+  { r: 38, duration: 28, dots: 3, delay: 0 },
+  { r: 58, duration: 36, dots: 4, delay: -8 },
+  { r: 78, duration: 48, dots: 2, delay: -16 },
+];
 
-const WAVE_COUNT = 4;
-const BASE_SPEED = 0.0008;
-const PARTICLE_COUNT = 18;
+const KEYWORDS = [
+  { label: "Next.js", x: 14, y: 22, delay: 0 },
+  { label: "TypeScript", x: 78, y: 18, delay: 1.2 },
+  { label: "React", x: 88, y: 72, delay: 2.4 },
+  { label: "Supabase", x: 8, y: 74, delay: 3.6 },
+  { label: "Motion", x: 52, y: 88, delay: 0.8 },
+];
 
-interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  radius: number;
-  alpha: number;
-  phase: number;
-}
-
-function createParticles(w: number, h: number): Particle[] {
-  return Array.from({ length: PARTICLE_COUNT }, () => ({
-    x: Math.random() * w,
-    y: Math.random() * h,
-    vx: (Math.random() - 0.5) * 0.3,
-    vy: (Math.random() - 0.5) * 0.15,
-    radius: Math.random() * 1.8 + 0.6,
-    alpha: Math.random() * 0.4 + 0.1,
-    phase: Math.random() * Math.PI * 2,
-  }));
-}
-
-export function SignalVisualizer({ energy = 0 }: SignalVisualizerProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animRef = useRef<number>(0);
-  const energyRef = useRef(energy);
-  const particlesRef = useRef<Particle[]>([]);
+export function SignalVisualizer() {
   const reducedMotion = useReducedMotion();
-
-  useEffect(() => {
-    energyRef.current = energy;
-  }, [energy]);
-
-  const draw = useCallback(
-    (ctx: CanvasRenderingContext2D, w: number, h: number, time: number) => {
-      const dpr = window.devicePixelRatio || 1;
-      const cssW = w / dpr;
-      const cssH = h / dpr;
-      const e = energyRef.current;
-
-      ctx.clearRect(0, 0, w, h);
-
-      const midY = h / 2;
-      const amplitude = cssH * (0.22 + e * 0.28);
-
-      for (let i = 0; i < WAVE_COUNT; i++) {
-        const freq = 0.003 + i * 0.0012;
-        const speed = BASE_SPEED * (1 + i * 0.3 + e * 2);
-        const offset = time * speed * 1000;
-        const waveAlpha = 0.12 + (WAVE_COUNT - i) * 0.06 - e * 0.02;
-
-        ctx.beginPath();
-        ctx.moveTo(0, midY);
-
-        for (let x = 0; x <= w; x += 2) {
-          const cssX = x / dpr;
-          const envelope =
-            Math.sin((cssX / cssW) * Math.PI) *
-            (0.7 + 0.3 * Math.sin(cssX * 0.002 + offset * 0.5));
-          const y =
-            midY +
-            Math.sin(cssX * freq + offset + i * 1.2) *
-              amplitude *
-              envelope *
-              dpr;
-          ctx.lineTo(x, y);
-        }
-
-        ctx.lineTo(w, h);
-        ctx.lineTo(0, h);
-        ctx.closePath();
-
-        const grad = ctx.createLinearGradient(0, midY - amplitude * dpr, 0, h);
-        const isAccent = i < 2;
-        if (isAccent) {
-          grad.addColorStop(
-            0,
-            `rgba(212, 85, 45, ${waveAlpha * (0.6 + e * 0.4)})`
-          );
-          grad.addColorStop(0.5, `rgba(212, 85, 45, ${waveAlpha * 0.3})`);
-          grad.addColorStop(1, "rgba(212, 85, 45, 0)");
-        } else {
-          grad.addColorStop(
-            0,
-            `rgba(17, 97, 73, ${waveAlpha * (0.5 + e * 0.3)})`
-          );
-          grad.addColorStop(0.5, `rgba(17, 97, 73, ${waveAlpha * 0.2})`);
-          grad.addColorStop(1, "rgba(17, 97, 73, 0)");
-        }
-        ctx.fillStyle = grad;
-        ctx.fill();
-
-        ctx.beginPath();
-        for (let x = 0; x <= w; x += 2) {
-          const cssX = x / dpr;
-          const envelope =
-            Math.sin((cssX / cssW) * Math.PI) *
-            (0.7 + 0.3 * Math.sin(cssX * 0.002 + offset * 0.5));
-          const y =
-            midY +
-            Math.sin(cssX * freq + offset + i * 1.2) *
-              amplitude *
-              envelope *
-              dpr;
-          if (x === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.strokeStyle = isAccent
-          ? `rgba(212, 85, 45, ${0.25 + e * 0.35})`
-          : `rgba(17, 97, 73, ${0.15 + e * 0.25})`;
-        ctx.lineWidth = (1 + e * 1.5) * dpr;
-        ctx.stroke();
-      }
-
-      const particles = particlesRef.current;
-      for (const p of particles) {
-        p.x += p.vx * (1 + e * 3);
-        p.y += p.vy + Math.sin(time * 0.001 + p.phase) * 0.2;
-
-        if (p.x < 0) p.x = w / dpr;
-        if (p.x > w / dpr) p.x = 0;
-        if (p.y < 0) p.y = h / dpr;
-        if (p.y > h / dpr) p.y = 0;
-
-        const px = p.x * dpr;
-        const py = p.y * dpr;
-        const pr = p.radius * dpr * (1 + e * 0.5);
-        const pa = p.alpha * (0.6 + e * 0.8);
-
-        ctx.beginPath();
-        ctx.arc(px, py, pr, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(212, 85, 45, ${pa})`;
-        ctx.fill();
-      }
-
-      const scanX = ((time * 0.00015 * (1 + e * 2)) % 1) * w;
-      const scanGrad = ctx.createLinearGradient(
-        scanX - 30 * dpr,
-        0,
-        scanX + 30 * dpr,
-        0
-      );
-      scanGrad.addColorStop(0, "rgba(212, 85, 45, 0)");
-      scanGrad.addColorStop(0.5, `rgba(212, 85, 45, ${0.06 + e * 0.1})`);
-      scanGrad.addColorStop(1, "rgba(212, 85, 45, 0)");
-      ctx.fillStyle = scanGrad;
-      ctx.fillRect(scanX - 30 * dpr, 0, 60 * dpr, h);
-    },
-    []
-  );
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const resize = () => {
-      const dpr = window.devicePixelRatio || 1;
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      particlesRef.current = createParticles(rect.width, rect.height);
-    };
-
-    resize();
-    window.addEventListener("resize", resize);
-
-    if (reducedMotion) {
-      draw(ctx, canvas.width, canvas.height, 4000);
-      return () => window.removeEventListener("resize", resize);
-    }
-
-    let running = true;
-    const loop = (time: number) => {
-      if (!running) return;
-      draw(ctx, canvas.width, canvas.height, time);
-      animRef.current = requestAnimationFrame(loop);
-    };
-    animRef.current = requestAnimationFrame(loop);
-
-    return () => {
-      running = false;
-      cancelAnimationFrame(animRef.current);
-      window.removeEventListener("resize", resize);
-    };
-  }, [reducedMotion, draw]);
+  const paused = reducedMotion ?? false;
 
   return (
-    <div className="signal-visualizer">
-      <canvas
-        ref={canvasRef}
-        className="signal-canvas"
-        aria-hidden="true"
-      />
-      <div className="signal-overlay">
-        <div className="signal-label">
-          <span className="signal-dot" />
-          <span>LIVE SIGNAL</span>
-        </div>
-        <span className="signal-freq">
-          {(60 + energy * 180).toFixed(0)} Hz
-        </span>
+    <div className="orbital-vis" aria-hidden="true">
+      <div className="orbital-aurora" />
+      <div className="orbital-aurora orbital-aurora-2" />
+
+      <svg
+        className="orbital-svg"
+        viewBox="0 0 200 100"
+        preserveAspectRatio="xMidYMid slice"
+      >
+        <defs>
+          <radialGradient id="core-glow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.6" />
+            <stop offset="60%" stopColor="var(--accent)" stopOpacity="0.08" />
+            <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
+          </radialGradient>
+          <radialGradient id="dot-glow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+
+        <circle
+          cx="100"
+          cy="50"
+          r="16"
+          fill="url(#core-glow)"
+          className={paused ? "" : "orbital-core-pulse"}
+        />
+        <circle cx="100" cy="50" r="2.5" fill="var(--accent)" opacity="0.85" />
+        <circle
+          cx="100"
+          cy="50"
+          r="1"
+          fill="#fff"
+          opacity="0.9"
+        />
+
+        {RINGS.map((ring, i) => (
+          <g key={i}>
+            <ellipse
+              cx="100"
+              cy="50"
+              rx={ring.r}
+              ry={ring.r * 0.42}
+              fill="none"
+              stroke="var(--accent)"
+              strokeWidth="0.3"
+              strokeDasharray="2 4"
+              opacity="0.18"
+              className={paused ? "" : "orbital-ring-spin"}
+              style={{
+                animationDuration: `${ring.duration * 1.5}s`,
+                animationDelay: `${ring.delay}s`,
+                transformOrigin: "100px 50px",
+              }}
+            />
+
+            {Array.from({ length: ring.dots }).map((_, d) => {
+              const angle = (d / ring.dots) * 360;
+              return (
+                <g
+                  key={d}
+                  className={paused ? "" : "orbital-dot-orbit"}
+                  style={{
+                    animationDuration: `${ring.duration}s`,
+                    animationDelay: `${ring.delay + (d / ring.dots) * ring.duration}s`,
+                    transformOrigin: "100px 50px",
+                  }}
+                >
+                  <circle
+                    cx={100 + ring.r * Math.cos((angle * Math.PI) / 180)}
+                    cy={
+                      50 +
+                      ring.r *
+                        0.42 *
+                        Math.sin((angle * Math.PI) / 180)
+                    }
+                    r="4"
+                    fill="url(#dot-glow)"
+                  />
+                  <circle
+                    cx={100 + ring.r * Math.cos((angle * Math.PI) / 180)}
+                    cy={
+                      50 +
+                      ring.r *
+                        0.42 *
+                        Math.sin((angle * Math.PI) / 180)
+                    }
+                    r="1.2"
+                    fill="var(--accent)"
+                    opacity="0.9"
+                  />
+                </g>
+              );
+            })}
+          </g>
+        ))}
+
+        {!paused && (
+          <>
+            <line
+              x1="100"
+              y1="50"
+              x2={100 + 38 * Math.cos(0)}
+              y2={50 + 38 * 0.42 * Math.sin(0)}
+              stroke="var(--accent)"
+              strokeWidth="0.2"
+              opacity="0.12"
+              className="orbital-connection"
+            />
+            <line
+              x1="100"
+              y1="50"
+              x2={100 + 58 * Math.cos(Math.PI * 0.6)}
+              y2={50 + 58 * 0.42 * Math.sin(Math.PI * 0.6)}
+              stroke="var(--accent)"
+              strokeWidth="0.2"
+              opacity="0.12"
+              className="orbital-connection"
+              style={{ animationDelay: "1.5s" }}
+            />
+          </>
+        )}
+      </svg>
+
+      <div className="orbital-keywords">
+        {KEYWORDS.map((kw) => (
+          <span
+            key={kw.label}
+            className={`orbital-kw ${paused ? "" : "orbital-kw-float"}`}
+            style={{
+              left: `${kw.x}%`,
+              top: `${kw.y}%`,
+              animationDelay: `${kw.delay}s`,
+            }}
+          >
+            {kw.label}
+          </span>
+        ))}
+      </div>
+
+      <div className="orbital-badge">
+        <span className="orbital-badge-dot" />
+        <span>ORBITAL SYSTEM</span>
       </div>
     </div>
   );
