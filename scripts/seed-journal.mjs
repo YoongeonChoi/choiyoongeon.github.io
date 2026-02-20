@@ -178,7 +178,7 @@ function normalizeDate(raw) {
   return parts.join("-");
 }
 
-function generateTitle(date, content) {
+function generateTitle(date) {
   const d = new Date(date);
   if (isNaN(d.getTime())) return `메모 (${date})`;
   const y = d.getFullYear();
@@ -473,7 +473,7 @@ async function main() {
     const categoryName = guessCategory(tags, content);
     const categoryId = categoryMap[categoryName] || null;
 
-    const title = generateTitle(entry.date, content);
+    const title = generateTitle(entry.date);
     const excerpt = generateExcerpt(content);
 
     // Skip if slug already exists

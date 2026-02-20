@@ -28,21 +28,24 @@ export default function AdminDashboardPage() {
       router.replace("/admin/login");
       return;
     }
-    fetchPosts();
-  }, [user, authLoading, router]);
 
-  async function fetchPosts() {
+    let active = true;
     const supabase = getAdminClient();
     if (!supabase) return;
 
-    const { data } = await supabase
+    supabase
       .from("blog_posts")
       .select("id, title, slug, tags, is_published, published_at, created_at")
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .then(({ data }: { data: PostRow[] | null }) => {
+        if (active) {
+          setPosts(data ?? []);
+          setLoading(false);
+        }
+      });
 
-    setPosts(data ?? []);
-    setLoading(false);
-  }
+    return () => { active = false; };
+  }, [user, authLoading, router]);
 
   async function handleDelete(id: string, title: string) {
     if (!confirm(`"${title}" 글을 삭제하시겠습니까?`)) return;

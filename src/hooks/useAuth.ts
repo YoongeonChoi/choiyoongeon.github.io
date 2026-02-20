@@ -6,14 +6,11 @@ import { getSupabaseClient } from "@/lib/supabase/client";
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => getSupabaseClient() !== null);
 
   useEffect(() => {
     const supabase = getSupabaseClient();
-    if (!supabase) {
-      setLoading(false);
-      return;
-    }
+    if (!supabase) return;
 
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user);

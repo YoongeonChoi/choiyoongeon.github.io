@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, Suspense, useCallback, useEffect, useState } from "react";
+import { FormEvent, Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getAdminClient } from "@/lib/supabase/admin";
@@ -50,7 +50,7 @@ function AdminEditorPage() {
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [slugManual, setSlugManual] = useState(false);
+  const slugManualRef = useRef(!!editId);
 
   useEffect(() => {
     if (authLoading) return;
@@ -58,39 +58,48 @@ function AdminEditorPage() {
       router.replace("/admin/login");
       return;
     }
-    loadCategories();
-    if (editId) loadPost(editId);
+
+    let active = true;
+    const supabase = getAdminClient();
+    if (!supabase) return;
+
+    supabase
+      .from("categories")
+      .select("id, name")
+      .order("sort_order")
+      .then(({ data }: { data: CategoryRow[] | null }) => {
+        if (active) setCategories(data ?? []);
+      });
+
+    if (editId) {
+      supabase
+        .from("blog_posts")
+        .select("*")
+        .eq("id", editId)
+        .single()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .then(({ data, error: err }: { data: any; error: any }) => {
+          if (!active || err || !data) return;
+          setTitle(data.title ?? "");
+          setSlug(data.slug ?? "");
+          setExcerpt(data.excerpt ?? "");
+          setContent(data.content_mdx ?? "");
+          setTagsInput(Array.isArray(data.tags) ? data.tags.join(", ") : "");
+          setCategoryId(data.category_id ?? "");
+          setIsPublished(Boolean(data.is_published));
+          slugManualRef.current = true;
+        });
+    }
+
+    return () => { active = false; };
   }, [user, authLoading, editId, router]);
 
-  useEffect(() => {
-    if (!slugManual && !editId) {
-      setSlug(slugify(title));
+  function handleTitleChange(value: string) {
+    setTitle(value);
+    if (!slugManualRef.current) {
+      setSlug(slugify(value));
     }
-  }, [title, slugManual, editId]);
-
-  async function loadCategories() {
-    const supabase = getAdminClient();
-    if (!supabase) return;
-    const { data } = await supabase.from("categories").select("id, name").order("sort_order");
-    setCategories(data ?? []);
   }
-
-  const loadPost = useCallback(async (id: string) => {
-    const supabase = getAdminClient();
-    if (!supabase) return;
-
-    const { data, error } = await supabase.from("blog_posts").select("*").eq("id", id).single();
-    if (error || !data) return;
-
-    setTitle(data.title ?? "");
-    setSlug(data.slug ?? "");
-    setExcerpt(data.excerpt ?? "");
-    setContent(data.content_mdx ?? "");
-    setTagsInput(Array.isArray(data.tags) ? data.tags.join(", ") : "");
-    setCategoryId(data.category_id ?? "");
-    setIsPublished(Boolean(data.is_published));
-    setSlugManual(true);
-  }, []);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -165,7 +174,7 @@ function AdminEditorPage() {
           <input
             required
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => handleTitleChange(e.target.value)}
             className="w-full rounded-lg border border-border-default bg-surface-base px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
             placeholder="글 제목"
           />
@@ -177,7 +186,7 @@ function AdminEditorPage() {
             required
             value={slug}
             onChange={(e) => {
-              setSlugManual(true);
+              slugManualRef.current = true;
               setSlug(e.target.value);
             }}
             className="w-full rounded-lg border border-border-default bg-surface-base px-3 py-2 text-sm font-mono text-text-primary outline-none focus:border-accent"
