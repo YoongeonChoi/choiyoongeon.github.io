@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getAllBlogPosts, getAllCategories, getAllTags } from "@/lib/content";
-import { PostCard } from "@/site/components/PostCard";
+import { BlogContent } from "@/site/components/BlogContent";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -15,6 +14,18 @@ export default async function BlogPage() {
     getAllCategories(),
   ]);
 
+  const serializedPosts = posts.map((p) => ({
+    slug: p.slug,
+    title: p.title,
+    summary: p.summary,
+    date: p.date,
+    tags: p.tags,
+    category: p.category,
+    featured: p.featured,
+    readingTimeMinutes: p.readingTimeMinutes,
+    content: p.content,
+  }));
+
   return (
     <section className="site-container section page-hero">
       <p className="eyebrow">Blog</p>
@@ -24,37 +35,11 @@ export default async function BlogPage() {
         and safety.
       </p>
 
-      <div className="filter-row" aria-label="Categories">
-        {categories.map((category) => (
-          <Link
-            key={category}
-            href={`/blog/categories/${encodeURIComponent(category)}`}
-            className="tag-link"
-            prefetch={false}
-          >
-            {category}
-          </Link>
-        ))}
-      </div>
-
-      <div className="filter-row" aria-label="Tags">
-        {tags.map((tag) => (
-          <Link
-            key={tag}
-            href={`/blog/tags/${encodeURIComponent(tag)}`}
-            className="tag-link"
-            prefetch={false}
-          >
-            #{tag}
-          </Link>
-        ))}
-      </div>
-
-      <div className="content-grid section">
-        {posts.map((post) => (
-          <PostCard key={post.slug} post={post} />
-        ))}
-      </div>
+      <BlogContent
+        posts={serializedPosts}
+        tags={tags}
+        categories={categories}
+      />
     </section>
   );
 }
