@@ -105,7 +105,6 @@ function getStyles(): cytoscape.StylesheetStyle[] {
         "background-opacity": 1,
         "border-width": 4,
         "border-color": "rgba(255, 140, 90, 0.6)",
-        "border-opacity": 1,
         "font-size": "15px",
         "font-weight": 700,
         color: "#ffffff",
@@ -123,7 +122,6 @@ function getStyles(): cytoscape.StylesheetStyle[] {
         "background-opacity": 1,
         "border-width": 2,
         "border-color": "rgba(255, 107, 61, 0.5)",
-        "border-opacity": 1,
         "font-size": "11px",
         color: "#ff8c5a",
         "font-weight": 600,
@@ -141,7 +139,6 @@ function getStyles(): cytoscape.StylesheetStyle[] {
         "background-opacity": 0.95,
         "border-width": 1,
         "border-color": "rgba(160, 180, 200, 0.15)",
-        "border-opacity": 1,
         "font-size": "8.5px",
         color: "#7a8fa3",
         "text-outline-color": "rgba(0,0,0,0.3)",
@@ -196,7 +193,20 @@ export function SkillGraph() {
       container: containerRef.current,
       elements: buildElements(),
       style: getStyles(),
-      layout: { name: "preset" },
+      layout: {
+        name: "concentric",
+        concentric: (node: cytoscape.NodeSingular) => {
+          const t = node.data("type");
+          if (t === "center") return 3;
+          if (t === "project") return 2;
+          return 1;
+        },
+        levelWidth: () => 1,
+        minNodeSpacing: 80,
+        animate: false,
+        fit: true,
+        padding: 60,
+      },
       userZoomingEnabled: false,
       userPanningEnabled: false,
       boxSelectionEnabled: false,
@@ -204,22 +214,6 @@ export function SkillGraph() {
     });
 
     cyRef.current = cy;
-
-    const layout = cy.layout({
-      name: "cose",
-      animate: true,
-      animationDuration: 1400,
-      nodeRepulsion: () => 80000,
-      idealEdgeLength: () => 250,
-      edgeElasticity: () => 45,
-      gravity: 0.08,
-      numIter: 500,
-      randomize: true,
-      fit: true,
-      padding: 80,
-    } as cytoscape.CoseLayoutOptions);
-
-    layout.run();
 
     cy.on("tap", "node[type='center'], node[type='project']", handleTap);
 
@@ -236,7 +230,7 @@ export function SkillGraph() {
             height: isCenter ? 140 : 98,
           },
         },
-        { duration: 250, easing: "ease-out-cubic" }
+        { duration: 250 }
       );
       n.connectedEdges().stop().animate(
         { style: { opacity: 1, width: 3, "line-color": "rgba(255,107,61,0.5)" } },
@@ -281,10 +275,7 @@ export function SkillGraph() {
       n.neighborhood("node").stop().animate(
         {
           style: {
-            "border-color": n
-              .neighborhood("node")
-              .first()
-              .data("type") === "project"
+            "border-color": n.neighborhood("node").first().data("type") === "project"
               ? "rgba(255,107,61,0.5)"
               : "rgba(160,180,200,0.15)",
           },
@@ -293,10 +284,11 @@ export function SkillGraph() {
       );
     });
 
+    /* Gentle drift after initial concentric layout */
     const driftVelocities = new Map<string, { vx: number; vy: number }>();
     cy.nodes().forEach((node) => {
       const angle = Math.random() * Math.PI * 2;
-      const speed = 0.15 + Math.random() * 0.25;
+      const speed = 0.1 + Math.random() * 0.2;
       driftVelocities.set(node.id(), {
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
@@ -304,75 +296,63 @@ export function SkillGraph() {
     });
 
     let lastTime = performance.now();
+    const originPositions = new Map<string, { x: number; y: number }>();
+    cy.nodes().forEach((node) => {
+      originPositions.set(node.id(), { ...node.position() });
+    });
 
     const drift = (now: number) => {
       const dt = Math.min((now - lastTime) / 16.67, 3);
       lastTime = now;
 
-      const centerPos = cy.getElementById("center").position();
-      const bb = cy.extent();
-
       cy.nodes().forEach((node) => {
         if (node.grabbed()) return;
         const vel = driftVelocities.get(node.id());
-        if (!vel) return;
+        const origin = originPositions.get(node.id());
+        if (!vel || !origin) return;
 
         const pos = node.position();
-        const isCenter = node.id() === "center";
 
-        if (!isCenter) {
-          const dx = centerPos.x - pos.x;
-          const dy = centerPos.y - pos.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist > 1) {
-            const pull = 0.0008 * Math.max(0, dist - 100);
-            vel.vx += (dx / dist) * pull * dt;
-            vel.vy += (dy / dist) * pull * dt;
-          }
+        /* Spring back toward original concentric position */
+        const dx = origin.x - pos.x;
+        const dy = origin.y - pos.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const spring = 0.0015 * dist;
+        if (dist > 1) {
+          vel.vx += (dx / dist) * spring * dt;
+          vel.vy += (dy / dist) * spring * dt;
         }
 
+        /* Repulsion from nearby nodes */
         node.neighborhood("node").forEach((other: cytoscape.NodeSingular) => {
           const ox = other.position("x") - pos.x;
           const oy = other.position("y") - pos.y;
           const od = Math.sqrt(ox * ox + oy * oy);
-          if (od < 180 && od > 1) {
-            const push = 0.3 / (od * od);
+          if (od < 150 && od > 1) {
+            const push = 0.15 / (od * od);
             vel.vx -= (ox / od) * push * dt;
             vel.vy -= (oy / od) * push * dt;
           }
         });
 
-        const margin = 80;
-        if (pos.x < bb.x1 + margin) vel.vx += 0.03 * dt;
-        if (pos.x > bb.x2 - margin) vel.vx -= 0.03 * dt;
-        if (pos.y < bb.y1 + margin) vel.vy += 0.03 * dt;
-        if (pos.y > bb.y2 - margin) vel.vy -= 0.03 * dt;
+        /* Random jitter for organic feel */
+        vel.vx += (Math.random() - 0.5) * 0.025 * dt;
+        vel.vy += (Math.random() - 0.5) * 0.025 * dt;
 
-        vel.vx += (Math.random() - 0.5) * 0.03 * dt;
-        vel.vy += (Math.random() - 0.5) * 0.03 * dt;
-        vel.vx *= 0.96;
-        vel.vy *= 0.96;
+        /* Damping */
+        vel.vx *= 0.965;
+        vel.vy *= 0.965;
 
         node.position({
-          x: pos.x + vel.vx * 0.45 * dt,
-          y: pos.y + vel.vy * 0.45 * dt,
+          x: pos.x + vel.vx * 0.5 * dt,
+          y: pos.y + vel.vy * 0.5 * dt,
         });
       });
-
-      if (!cy.getElementById("center").grabbed()) {
-        const midX = (bb.x1 + bb.x2) / 2;
-        const midY = (bb.y1 + bb.y2) / 2;
-        const pull = 0.003;
-        cy.getElementById("center").position({
-          x: centerPos.x + (midX - centerPos.x) * pull * dt,
-          y: centerPos.y + (midY - centerPos.y) * pull * dt,
-        });
-      }
 
       rafRef.current = requestAnimationFrame(drift);
     };
 
-    layout.one("layoutstop", () => {
+    cy.ready(() => {
       cy.fit(undefined, 60);
       rafRef.current = requestAnimationFrame(drift);
     });
