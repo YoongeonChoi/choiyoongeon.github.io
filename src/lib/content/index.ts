@@ -128,7 +128,7 @@ async function fetchSupabasePosts(): Promise<BlogPost[] | null> {
 
 export async function getAllBlogPosts(): Promise<BlogPost[]> {
   const supabasePosts = await fetchSupabasePosts();
-  if (supabasePosts !== null) return supabasePosts;
+  if (supabasePosts !== null && supabasePosts.length > 0) return supabasePosts;
   return getLocalBlogPosts();
 }
 
