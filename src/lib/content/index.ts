@@ -108,22 +108,27 @@ async function getLocalBlogPosts(): Promise<BlogPost[]> {
 // ─── Blog (Supabase primary, local fallback) ───
 
 async function fetchSupabasePosts(): Promise<BlogPost[] | null> {
-  const supabase = createServerClient();
-  if (!supabase) return null;
+  try {
+    const supabase = createServerClient();
+    if (!supabase) return null;
 
-  const { data, error } = await supabase
-    .from("blog_posts")
-    .select("*, categories(name)")
-    .eq("is_published", true)
-    .order("published_at", { ascending: false });
+    const { data, error } = await supabase
+      .from("blog_posts")
+      .select("*, categories(name)")
+      .eq("is_published", true)
+      .order("published_at", { ascending: false });
 
-  if (error || !data) {
-    console.warn("[blog] Supabase fetch failed:", error?.message);
+    if (error || !data) {
+      console.warn("[blog] Supabase fetch failed:", error?.message);
+      return null;
+    }
+
+    const rows: SupabasePostRow[] = data;
+    return Promise.all(rows.map((row) => rowToBlogPost(row)));
+  } catch (err) {
+    console.warn("[blog] Supabase fetch threw:", err instanceof Error ? err.message : err);
     return null;
   }
-
-  const rows: SupabasePostRow[] = data;
-  return Promise.all(rows.map((row) => rowToBlogPost(row)));
 }
 
 export async function getAllBlogPosts(): Promise<BlogPost[]> {
@@ -133,22 +138,25 @@ export async function getAllBlogPosts(): Promise<BlogPost[]> {
 }
 
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
-  const supabase = createServerClient();
-  if (supabase) {
-    const { data, error } = await supabase
-      .from("blog_posts")
-      .select("*, categories(name)")
-      .eq("slug", slug)
-      .eq("is_published", true)
-      .single();
+  try {
+    const supabase = createServerClient();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("blog_posts")
+        .select("*, categories(name)")
+        .eq("slug", slug)
+        .eq("is_published", true)
+        .single();
 
-    if (!error && data) {
-      const row: SupabasePostRow = data;
-      return rowToBlogPost(row);
+      if (!error && data) {
+        const row: SupabasePostRow = data;
+        return rowToBlogPost(row);
+      }
     }
+  } catch (err) {
+    console.warn("[blog] Post fetch threw:", err instanceof Error ? err.message : err);
   }
 
-  // Fallback to local file
   const filename = `${slug}.md`;
   if (!fs.existsSync(path.join(BLOG_DIR, filename))) return null;
   return parseBlogFile(filename);
@@ -165,16 +173,20 @@ export async function getAllTags(): Promise<string[]> {
 }
 
 export async function getAllCategories(): Promise<string[]> {
-  const supabase = createServerClient();
-  if (supabase) {
-    const { data, error } = await supabase
-      .from("categories")
-      .select("name")
-      .order("sort_order", { ascending: true });
+  try {
+    const supabase = createServerClient();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("name")
+        .order("sort_order", { ascending: true });
 
-    if (!error && data && data.length > 0) {
-      return data.map((row: { name: string }) => row.name);
+      if (!error && data && data.length > 0) {
+        return data.map((row: { name: string }) => row.name);
+      }
     }
+  } catch (err) {
+    console.warn("[blog] Categories fetch threw:", err instanceof Error ? err.message : err);
   }
 
   const posts = await getAllBlogPosts();
