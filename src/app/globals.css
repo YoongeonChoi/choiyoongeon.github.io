@@ -75,6 +75,7 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -230,20 +231,18 @@ img {
   text-overflow: ellipsis;
 }
 
-.main-nav {
+.desktop-nav {
   display: none;
 }
 
-.main-nav.open {
-  display: flex;
-  flex-direction: column;
+.mobile-nav-overlay {
   position: fixed;
   inset: 0;
   top: calc(3.5rem + var(--safe-top));
-  z-index: 99;
-  background: color-mix(in srgb, var(--bg) 96%, transparent);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
   padding: var(--space-l) var(--space-m);
   padding-bottom: calc(var(--space-xl) + var(--safe-bottom));
   gap: 0.25rem;
@@ -803,12 +802,59 @@ img {
   background: var(--surface);
 }
 
-/* ─── Blog search ─── */
+/* ─── Blog toolbar ─── */
+
+.blog-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: var(--space-m);
+}
 
 .blog-search-wrapper {
   position: relative;
-  margin-top: var(--space-m);
+  flex: 1;
+  min-width: 0;
   max-width: 480px;
+}
+
+.blog-sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  height: 48px;
+  padding: 0 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 200ms var(--ease), background 200ms var(--ease);
+}
+
+.blog-sort-btn:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.blog-sort-btn:active {
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+}
+
+.blog-sort-label {
+  display: none;
+}
+
+@media (min-width: 420px) {
+  .blog-sort-label {
+    display: inline;
+  }
 }
 
 .blog-search-icon {
@@ -1068,9 +1114,9 @@ img {
 
 /* ─── Mobile-first: small screens (iPhone 16 Pro = 402pt) ─── */
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   :root {
-    --container: calc(100vw - var(--safe-left) - var(--safe-right) - 1.5rem);
+    --container: calc(100vw - 1.5rem);
   }
 
   .page-title {
@@ -1212,14 +1258,14 @@ img {
     display: none;
   }
 
-  .main-nav {
+  .desktop-nav {
     display: flex;
     gap: 0.25rem;
     justify-content: end;
     align-items: center;
   }
 
-  .main-nav .nav-link {
+  .desktop-nav .nav-link {
     font-size: 0.95rem;
     padding: 0.4rem 0.55rem;
     min-height: unset;

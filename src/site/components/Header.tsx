@@ -2,29 +2,60 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore, useState } from "react";
+import { createPortal } from "react-dom";
 import { navItems, siteConfig } from "@/site/config";
 
 function isActive(pathname: string, href: string) {
-  if (href === "/") {
-    return pathname === "/";
-  }
+  if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function MobileNav({ pathname }: { pathname: string }) {
-  const [open, setOpen] = useState(false);
+const subscribe = () => () => {};
+function useIsClient() {
+  return useSyncExternalStore(subscribe, () => true, () => false);
+}
+
+function MobileNavPanel({
+  pathname,
+  onClose,
+}: {
+  pathname: string;
+  onClose: () => void;
+}) {
+  const isClient = useIsClient();
 
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [open]);
+  }, []);
+
+  if (!isClient) return null;
+
+  return createPortal(
+    <nav className="mobile-nav-overlay" aria-label="주요 메뉴">
+      {navItems.map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          prefetch={false}
+          className={
+            isActive(pathname, item.href) ? "nav-link active" : "nav-link"
+          }
+          onClick={onClose}
+        >
+          {item.label}
+        </Link>
+      ))}
+    </nav>,
+    document.body
+  );
+}
+
+function HeaderControls({ pathname }: { pathname: string }) {
+  const [open, setOpen] = useState(false);
 
   return (
     <>
@@ -33,7 +64,6 @@ function MobileNav({ pathname }: { pathname: string }) {
         className="menu-toggle"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        aria-controls="main-nav"
         aria-label={open ? "메뉴 닫기" : "메뉴 열기"}
       >
         <span className={`hamburger-icon ${open ? "open" : ""}`}>
@@ -43,23 +73,24 @@ function MobileNav({ pathname }: { pathname: string }) {
         </span>
       </button>
 
-      <nav
-        id="main-nav"
-        className={`main-nav ${open ? "open" : ""}`}
-        aria-label="주요 메뉴"
-      >
+      <nav className="desktop-nav" aria-label="주요 메뉴">
         {navItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             prefetch={false}
-            className={isActive(pathname, item.href) ? "nav-link active" : "nav-link"}
-            onClick={() => setOpen(false)}
+            className={
+              isActive(pathname, item.href) ? "nav-link active" : "nav-link"
+            }
           >
             {item.label}
           </Link>
         ))}
       </nav>
+
+      {open && (
+        <MobileNavPanel pathname={pathname} onClose={() => setOpen(false)} />
+      )}
     </>
   );
 }
@@ -75,7 +106,7 @@ export function Header() {
           <span className="brand-text">Yoongeon&apos;s Portfolio</span>
         </Link>
 
-        <MobileNav key={pathname} pathname={pathname} />
+        <HeaderControls key={pathname} pathname={pathname} />
       </div>
     </header>
   );
