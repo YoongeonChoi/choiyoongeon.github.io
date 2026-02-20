@@ -62,7 +62,6 @@ function buildElements(): cytoscape.ElementDefinition[] {
 
     for (const skill of proj.skills) {
       const skillId = `skill-${skill.replace(/\s+/g, "-").toLowerCase()}`;
-
       if (!addedSkills.has(skillId)) {
         addedSkills.add(skillId);
         elements.push({
@@ -87,78 +86,83 @@ function getStyles(): cytoscape.StylesheetStyle[] {
         "text-valign": "center",
         "text-halign": "center",
         "text-wrap": "wrap",
-        "text-max-width": "90px",
-        color: "#8a9bb0",
-        "font-size": "9px",
-        "font-family": "'Space Grotesk', sans-serif",
+        "text-max-width": "100px",
+        color: "#a0b4c8",
+        "font-size": "10px",
+        "font-family": "'Space Grotesk', system-ui, sans-serif",
         "font-weight": 500,
         "min-zoomed-font-size": 0,
         "overlay-opacity": 0,
-        "transition-property":
-          "border-width, border-color, background-color, width, height, opacity",
-        "transition-duration": "0.25s" as unknown as number,
       } as cytoscape.Css.Node,
     },
     {
       selector: "node[type='center']",
       style: {
-        width: 110,
-        height: 110,
+        width: 130,
+        height: 130,
         shape: "ellipse",
-        "background-color": "#d4552d",
-        "background-opacity": 0.95,
-        "border-width": 3,
-        "border-color": "rgba(239, 123, 82, 0.5)",
-        "font-size": "14px",
+        "background-color": "#ff6b3d",
+        "background-opacity": 1,
+        "border-width": 4,
+        "border-color": "rgba(255, 140, 90, 0.6)",
+        "border-opacity": 1,
+        "font-size": "15px",
         "font-weight": 700,
         color: "#ffffff",
-        "text-outline-color": "rgba(0,0,0,0.35)",
-        "text-outline-width": 1.5,
+        "text-outline-color": "rgba(0,0,0,0.5)",
+        "text-outline-width": 2,
       } as cytoscape.Css.Node,
     },
     {
       selector: "node[type='project']",
       style: {
-        width: 76,
-        height: 76,
+        width: 90,
+        height: 90,
         shape: "ellipse",
-        "background-color": "rgba(18, 25, 35, 0.92)",
-        "border-width": 1.5,
-        "border-color": "rgba(212, 85, 45, 0.35)",
-        "font-size": "10px",
-        color: "#ef7b52",
+        "background-color": "#1a2536",
+        "background-opacity": 1,
+        "border-width": 2,
+        "border-color": "rgba(255, 107, 61, 0.5)",
+        "border-opacity": 1,
+        "font-size": "11px",
+        color: "#ff8c5a",
         "font-weight": 600,
+        "text-outline-color": "rgba(0,0,0,0.4)",
+        "text-outline-width": 1,
       } as cytoscape.Css.Node,
     },
     {
       selector: "node[type='skill']",
       style: {
-        width: 44,
-        height: 44,
+        width: 56,
+        height: 56,
         shape: "ellipse",
-        "background-color": "rgba(18, 25, 35, 0.75)",
+        "background-color": "#141e2e",
+        "background-opacity": 0.95,
         "border-width": 1,
-        "border-color": "rgba(255,255,255,0.08)",
-        "font-size": "7.5px",
-        color: "#6b7d8e",
+        "border-color": "rgba(160, 180, 200, 0.15)",
+        "border-opacity": 1,
+        "font-size": "8.5px",
+        color: "#7a8fa3",
+        "text-outline-color": "rgba(0,0,0,0.3)",
+        "text-outline-width": 0.5,
       } as cytoscape.Css.Node,
     },
     {
       selector: "edge",
       style: {
-        width: 0.8,
-        "line-color": "rgba(212, 85, 45, 0.12)",
+        width: 1,
+        "line-color": "rgba(160, 180, 200, 0.1)",
         "curve-style": "unbundled-bezier",
-        opacity: 0.5,
-        "line-style": "solid",
+        opacity: 0.6,
       },
     },
     {
       selector: "edge[type='primary']",
       style: {
-        width: 1.5,
-        "line-color": "rgba(212, 85, 45, 0.3)",
-        opacity: 0.7,
+        width: 2,
+        "line-color": "rgba(255, 107, 61, 0.25)",
+        opacity: 0.8,
       },
     },
     {
@@ -168,28 +172,21 @@ function getStyles(): cytoscape.StylesheetStyle[] {
     {
       selector: "node:grabbed",
       style: {
-        "border-color": "rgba(239, 123, 82, 0.8)",
-        "border-width": 3,
+        "border-color": "rgba(255, 140, 90, 1)",
+        "border-width": 4,
       } as cytoscape.Css.Node,
     },
   ];
 }
 
-/**
- * Obsidian-style continuously floating force-directed graph.
- * After the initial cose layout settles, nodes drift gently.
- */
 export function SkillGraph() {
   const containerRef = useRef<HTMLDivElement>(null);
   const cyRef = useRef<cytoscape.Core | null>(null);
   const rafRef = useRef<number>(0);
 
   const handleTap = useCallback((evt: cytoscape.EventObject) => {
-    const node = evt.target;
-    const href = node.data("href");
-    if (href) {
-      window.open(href, "_blank", "noopener,noreferrer");
-    }
+    const href = evt.target.data("href");
+    if (href) window.open(href, "_blank", "noopener,noreferrer");
   }, []);
 
   useEffect(() => {
@@ -211,15 +208,15 @@ export function SkillGraph() {
     const layout = cy.layout({
       name: "cose",
       animate: true,
-      animationDuration: 1200,
-      nodeRepulsion: () => 6000,
-      idealEdgeLength: () => 120,
-      edgeElasticity: () => 80,
-      gravity: 0.6,
-      numIter: 300,
+      animationDuration: 1400,
+      nodeRepulsion: () => 80000,
+      idealEdgeLength: () => 250,
+      edgeElasticity: () => 45,
+      gravity: 0.08,
+      numIter: 500,
       randomize: true,
       fit: true,
-      padding: 50,
+      padding: 80,
     } as cytoscape.CoseLayoutOptions);
 
     layout.run();
@@ -229,18 +226,25 @@ export function SkillGraph() {
     cy.on("mouseover", "node[type='center'], node[type='project']", (evt) => {
       containerRef.current!.style.cursor = "pointer";
       const n = evt.target;
-      n.animate(
+      const isCenter = n.data("type") === "center";
+      n.stop().animate(
         {
           style: {
-            "border-width": n.data("type") === "center" ? 5 : 3,
-            "border-color": "rgba(239,123,82,0.9)",
+            "border-width": isCenter ? 6 : 4,
+            "border-color": "rgba(255, 140, 90, 1)",
+            width: isCenter ? 140 : 98,
+            height: isCenter ? 140 : 98,
           },
         },
-        { duration: 200 }
+        { duration: 250, easing: "ease-out-cubic" }
       );
-      n.connectedEdges().animate(
-        { style: { opacity: 1, width: 2 } },
-        { duration: 200 }
+      n.connectedEdges().stop().animate(
+        { style: { opacity: 1, width: 3, "line-color": "rgba(255,107,61,0.5)" } },
+        { duration: 250 }
+      );
+      n.neighborhood("node").stop().animate(
+        { style: { "border-color": "rgba(255,140,90,0.4)" } },
+        { duration: 250 }
       );
     });
 
@@ -248,35 +252,51 @@ export function SkillGraph() {
       containerRef.current!.style.cursor = "default";
       const n = evt.target;
       const isCenter = n.data("type") === "center";
-      n.animate(
+      n.stop().animate(
         {
           style: {
-            "border-width": isCenter ? 3 : 1.5,
+            "border-width": isCenter ? 4 : 2,
             "border-color": isCenter
-              ? "rgba(239,123,82,0.5)"
-              : "rgba(212,85,45,0.35)",
+              ? "rgba(255,140,90,0.6)"
+              : "rgba(255,107,61,0.5)",
+            width: isCenter ? 130 : 90,
+            height: isCenter ? 130 : 90,
           },
         },
-        { duration: 300 }
+        { duration: 350 }
       );
-      n.connectedEdges().animate(
+      n.connectedEdges().stop().animate(
         {
           style: {
-            opacity: n.connectedEdges().first().data("type") === "primary" ? 0.7 : 0.5,
-            width: n.connectedEdges().first().data("type") === "primary" ? 1.5 : 0.8,
+            opacity: n.connectedEdges().first().data("type") === "primary" ? 0.8 : 0.6,
+            width: n.connectedEdges().first().data("type") === "primary" ? 2 : 1,
+            "line-color":
+              n.connectedEdges().first().data("type") === "primary"
+                ? "rgba(255,107,61,0.25)"
+                : "rgba(160,180,200,0.1)",
           },
         },
-        { duration: 300 }
+        { duration: 350 }
+      );
+      n.neighborhood("node").stop().animate(
+        {
+          style: {
+            "border-color": n
+              .neighborhood("node")
+              .first()
+              .data("type") === "project"
+              ? "rgba(255,107,61,0.5)"
+              : "rgba(160,180,200,0.15)",
+          },
+        },
+        { duration: 350 }
       );
     });
 
-    /* Obsidian-style continuous floating drift */
-    const driftStrength = 0.35;
     const driftVelocities = new Map<string, { vx: number; vy: number }>();
-
     cy.nodes().forEach((node) => {
       const angle = Math.random() * Math.PI * 2;
-      const speed = 0.2 + Math.random() * 0.3;
+      const speed = 0.15 + Math.random() * 0.25;
       driftVelocities.set(node.id(), {
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
@@ -285,81 +305,76 @@ export function SkillGraph() {
 
     let lastTime = performance.now();
 
-    const animate = (now: number) => {
+    const drift = (now: number) => {
       const dt = Math.min((now - lastTime) / 16.67, 3);
       lastTime = now;
 
-      const centerNode = cy.getElementById("center");
-      const cx = centerNode.position("x");
-      const cy2 = centerNode.position("y");
+      const centerPos = cy.getElementById("center").position();
       const bb = cy.extent();
-      const midX = (bb.x1 + bb.x2) / 2;
-      const midY = (bb.y1 + bb.y2) / 2;
 
       cy.nodes().forEach((node) => {
         if (node.grabbed()) return;
-
         const vel = driftVelocities.get(node.id());
         if (!vel) return;
 
         const pos = node.position();
+        const isCenter = node.id() === "center";
 
-        /* Gravity toward center node */
-        const dx = cx - pos.x;
-        const dy = cy2 - pos.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const gravityForce = 0.003 * dist;
-        vel.vx += (dx / dist) * gravityForce * dt;
-        vel.vy += (dy / dist) * gravityForce * dt;
+        if (!isCenter) {
+          const dx = centerPos.x - pos.x;
+          const dy = centerPos.y - pos.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist > 1) {
+            const pull = 0.0008 * Math.max(0, dist - 100);
+            vel.vx += (dx / dist) * pull * dt;
+            vel.vy += (dy / dist) * pull * dt;
+          }
+        }
 
-        /* Repulsion from other nearby nodes */
         node.neighborhood("node").forEach((other: cytoscape.NodeSingular) => {
           const ox = other.position("x") - pos.x;
           const oy = other.position("y") - pos.y;
           const od = Math.sqrt(ox * ox + oy * oy);
-          if (od < 120 && od > 1) {
-            const repel = 0.5 / (od * od);
-            vel.vx -= (ox / od) * repel * dt;
-            vel.vy -= (oy / od) * repel * dt;
+          if (od < 180 && od > 1) {
+            const push = 0.3 / (od * od);
+            vel.vx -= (ox / od) * push * dt;
+            vel.vy -= (oy / od) * push * dt;
           }
         });
 
-        /* Boundary soft-bounce */
-        const margin = 60;
-        if (pos.x < bb.x1 + margin) vel.vx += 0.05 * dt;
-        if (pos.x > bb.x2 - margin) vel.vx -= 0.05 * dt;
-        if (pos.y < bb.y1 + margin) vel.vy += 0.05 * dt;
-        if (pos.y > bb.y2 - margin) vel.vy -= 0.05 * dt;
+        const margin = 80;
+        if (pos.x < bb.x1 + margin) vel.vx += 0.03 * dt;
+        if (pos.x > bb.x2 - margin) vel.vx -= 0.03 * dt;
+        if (pos.y < bb.y1 + margin) vel.vy += 0.03 * dt;
+        if (pos.y > bb.y2 - margin) vel.vy -= 0.03 * dt;
 
-        /* Random jitter */
-        vel.vx += (Math.random() - 0.5) * 0.04 * dt;
-        vel.vy += (Math.random() - 0.5) * 0.04 * dt;
-
-        /* Damping */
-        vel.vx *= 0.97;
-        vel.vy *= 0.97;
+        vel.vx += (Math.random() - 0.5) * 0.03 * dt;
+        vel.vy += (Math.random() - 0.5) * 0.03 * dt;
+        vel.vx *= 0.96;
+        vel.vy *= 0.96;
 
         node.position({
-          x: pos.x + vel.vx * driftStrength * dt,
-          y: pos.y + vel.vy * driftStrength * dt,
+          x: pos.x + vel.vx * 0.45 * dt,
+          y: pos.y + vel.vy * 0.45 * dt,
         });
       });
 
-      /* Keep center node gently pulled to graph center */
-      if (!centerNode.grabbed()) {
-        const pull = 0.005;
-        centerNode.position({
-          x: cx + (midX - cx) * pull * dt,
-          y: cy2 + (midY - cy2) * pull * dt,
+      if (!cy.getElementById("center").grabbed()) {
+        const midX = (bb.x1 + bb.x2) / 2;
+        const midY = (bb.y1 + bb.y2) / 2;
+        const pull = 0.003;
+        cy.getElementById("center").position({
+          x: centerPos.x + (midX - centerPos.x) * pull * dt,
+          y: centerPos.y + (midY - centerPos.y) * pull * dt,
         });
       }
 
-      rafRef.current = requestAnimationFrame(animate);
+      rafRef.current = requestAnimationFrame(drift);
     };
 
     layout.one("layoutstop", () => {
-      cy.fit(undefined, 50);
-      rafRef.current = requestAnimationFrame(animate);
+      cy.fit(undefined, 60);
+      rafRef.current = requestAnimationFrame(drift);
     });
 
     return () => {
