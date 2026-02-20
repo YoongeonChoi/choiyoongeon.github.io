@@ -7,6 +7,8 @@ import { TableOfContents } from "@/site/components/TableOfContents";
 
 type Params = { slug: string };
 
+export const dynamicParams = false;
+
 export async function generateStaticParams(): Promise<Params[]> {
   const posts = await getAllBlogPosts();
   return posts.map((post) => ({ slug: post.slug }));

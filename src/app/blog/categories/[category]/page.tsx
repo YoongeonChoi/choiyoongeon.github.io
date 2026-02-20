@@ -5,6 +5,8 @@ import { PostCard } from "@/site/components/PostCard";
 
 type Params = { category: string };
 
+export const dynamicParams = false;
+
 export async function generateStaticParams(): Promise<Params[]> {
   const categories = await getAllCategories();
   return categories.map((category) => ({ category }));

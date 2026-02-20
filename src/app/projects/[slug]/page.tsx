@@ -8,6 +8,8 @@ import { TableOfContents } from "@/site/components/TableOfContents";
 
 type Params = { slug: string };
 
+export const dynamicParams = false;
+
 export async function generateStaticParams(): Promise<Params[]> {
   const projects = await getAllProjects();
   return projects.map((project) => ({ slug: project.slug }));
