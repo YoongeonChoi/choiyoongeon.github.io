@@ -364,7 +364,7 @@ img {
 
 .signal-visualizer {
   position: relative;
-  margin-top: var(--space-m);
+  margin-top: var(--space-s);
   border: 1px solid var(--border);
   border-radius: var(--radius-l);
   background: color-mix(in srgb, var(--bg) 60%, transparent);

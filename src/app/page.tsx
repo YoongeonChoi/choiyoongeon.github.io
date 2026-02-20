@@ -3,9 +3,9 @@ import { getFeaturedProjects, getLatestPosts } from "@/lib/content";
 import { PrimaryCta } from "@/site/components/PrimaryCta";
 import { ProjectCard } from "@/site/components/ProjectCard";
 import { Reveal } from "@/site/components/Reveal";
-import { SignalTicker } from "@/site/components/SignalTicker";
 import { StatsStrip } from "@/site/components/StatsStrip";
 import { PostCard } from "@/site/components/PostCard";
+import { SignalVisualizer } from "@/components/motion/SignalVisualizer";
 
 export default async function HomePage() {
   const [projects, posts] = await Promise.all([getFeaturedProjects(), getLatestPosts(3)]);
@@ -22,7 +22,7 @@ export default async function HomePage() {
               &nbsp;&quot;He is a man who refuses to stay the same.&quot;
             </p>
             <PrimaryCta />
-            <SignalTicker />
+            <SignalVisualizer />
           </Reveal>
           <Reveal delayMs={120}>
             <StatsStrip />
