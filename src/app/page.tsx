@@ -5,7 +5,7 @@ import { ProjectCard } from "@/site/components/ProjectCard";
 import { Reveal } from "@/site/components/Reveal";
 import { StatsStrip } from "@/site/components/StatsStrip";
 import { PostCard } from "@/site/components/PostCard";
-import { SignalVisualizer } from "@/components/motion/SignalVisualizer";
+import { GraphSection } from "@/components/graph/GraphSection";
 
 export default async function HomePage() {
   const [projects, posts] = await Promise.all([getFeaturedProjects(), getLatestPosts(3)]);
@@ -22,13 +22,14 @@ export default async function HomePage() {
               &nbsp;&quot;He is a man who refuses to stay the same.&quot;
             </p>
             <PrimaryCta />
-            <SignalVisualizer />
           </Reveal>
           <Reveal delayMs={120}>
             <StatsStrip />
           </Reveal>
         </div>
       </section>
+
+      <GraphSection />
 
       <section className="section site-container" aria-labelledby="featured-projects">
         <div className="section-header">

@@ -15,6 +15,7 @@
     "@react-three/fiber": "^9.5.0",
     "@supabase/supabase-js": "^2.95.3",
     "@types/three": "^0.182.0",
+    "cytoscape": "^3.33.1",
     "framer-motion": "^12.34.0",
     "github-slugger": "^2.0.0",
     "gray-matter": "^4.0.3",

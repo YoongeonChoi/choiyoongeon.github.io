@@ -20,7 +20,6 @@ import { LatestPostsCard } from "@/components/bento/LatestPostsCard";
 import { ContactCard } from "@/components/bento/ContactCard";
 import { StatsCard } from "@/components/bento/StatsCard";
 import { ContributionGrass } from "@/components/github/ContributionGrass";
-import { SignalVisualizer } from "@/components/motion/SignalVisualizer";
 import type { BlogPost } from "@/lib/supabase/types";
 
 interface GitHubGrassCardProps {
@@ -101,8 +100,6 @@ function SpatialBentoSection({
     </motion.section>
   );
 }
-
-/* MotionBand removed — replaced by SignalVisualizer */
 
 /**
  * Home page client component with the Bento Grid layout.
@@ -233,8 +230,6 @@ export function HomeContent({
           </div>
         </motion.div>
       </section>
-
-      <SignalVisualizer />
 
       <SpatialBentoSection
         scrollYProgress={scrollYProgress}

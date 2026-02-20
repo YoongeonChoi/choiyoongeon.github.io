@@ -358,147 +358,70 @@ img {
   color: var(--text-muted);
 }
 
-/* signal-ticker/signal-track removed — replaced by SignalVisualizer */
+/* ─── Skill Graph (Cytoscape) ─── */
 
-/* ─── Orbital Visualization ─── */
-
-.orbital-vis {
+.graph-pin-outer {
   position: relative;
-  margin-top: var(--space-s);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-l);
-  background: color-mix(in srgb, var(--bg) 85%, #000 15%);
-  overflow: hidden;
-  height: clamp(120px, 18vw, 200px);
-  isolation: isolate;
+  height: 300vh;
 }
 
-.orbital-aurora {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    ellipse 60% 80% at 30% 40%,
-    color-mix(in srgb, var(--accent) 14%, transparent),
-    transparent
-  );
-  animation: aurora-drift 12s ease-in-out infinite alternate;
+.graph-pin-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.orbital-aurora-2 {
-  background: radial-gradient(
-    ellipse 50% 70% at 70% 60%,
-    color-mix(in srgb, var(--ok) 10%, transparent),
-    transparent
-  );
-  animation: aurora-drift-2 16s ease-in-out infinite alternate;
-}
-
-@keyframes aurora-drift {
-  0% { transform: translate(0, 0) scale(1); opacity: 0.6; }
-  100% { transform: translate(5%, -8%) scale(1.15); opacity: 1; }
-}
-
-@keyframes aurora-drift-2 {
-  0% { transform: translate(0, 0) scale(1.1); opacity: 0.5; }
-  100% { transform: translate(-6%, 6%) scale(0.9); opacity: 0.9; }
-}
-
-.orbital-svg {
-  position: absolute;
-  inset: 0;
+.graph-pin-content {
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease;
 }
 
-.orbital-core-pulse {
-  animation: core-breathe 4s ease-in-out infinite;
-  transform-origin: 100px 50px;
+.skill-graph-canvas {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
 }
 
-@keyframes core-breathe {
-  0%, 100% { r: 14; opacity: 0.6; }
-  50% { r: 20; opacity: 1; }
-}
-
-.orbital-ring-spin {
-  animation: ring-rotate 40s linear infinite;
-}
-
-@keyframes ring-rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.orbital-dot-orbit {
-  animation: dot-orbit 30s linear infinite;
-}
-
-@keyframes dot-orbit {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.orbital-connection {
-  animation: conn-pulse 3s ease-in-out infinite;
-}
-
-@keyframes conn-pulse {
-  0%, 100% { opacity: 0.06; }
-  50% { opacity: 0.2; }
-}
-
-.orbital-keywords {
+.graph-hint {
   position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.orbital-kw {
-  position: absolute;
-  font-size: 0.6rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--text-muted);
-  opacity: 0;
-  transform: translateY(4px);
-}
-
-.orbital-kw-float {
-  animation: kw-appear 6s ease-in-out infinite;
-}
-
-@keyframes kw-appear {
-  0%, 100% { opacity: 0; transform: translateY(4px); }
-  20%, 80% { opacity: 0.45; transform: translateY(0); }
-}
-
-.orbital-badge {
-  position: absolute;
-  bottom: 0.5rem;
-  right: 0.65rem;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  font-size: 0.55rem;
-  font-weight: 600;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.14em;
   color: var(--text-muted);
   opacity: 0.5;
+  pointer-events: none;
+  white-space: nowrap;
+  animation: hint-breathe 3s ease-in-out infinite;
 }
 
-.orbital-badge-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--accent);
-  animation: badge-pulse 2.5s ease-in-out infinite;
+.graph-hint-icon {
+  font-size: 0.85rem;
+  animation: hint-bounce 2s ease-in-out infinite;
 }
 
-@keyframes badge-pulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
+@keyframes hint-breathe {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes hint-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
 }
 
 .cta-row {
@@ -1341,19 +1264,9 @@ img {
     gap: var(--space-m);
   }
 
-  .orbital-vis {
-    border-radius: var(--radius-m);
-    height: 100px;
-  }
-
-  .orbital-kw {
-    font-size: 0.5rem;
-  }
-
-  .orbital-badge {
-    font-size: 0.48rem;
-    bottom: 0.35rem;
-    right: 0.5rem;
+  .graph-hint {
+    font-size: 0.6rem;
+    bottom: 1rem;
   }
 
   .section {
