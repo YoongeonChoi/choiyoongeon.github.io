@@ -205,7 +205,7 @@ export async function getPostsByCategory(category: string): Promise<BlogPost[]> 
   return posts.filter((p) => p.category.toLowerCase() === normalized);
 }
 
-// ─── Projects (filesystem only) ───
+// ─── Projects (Supabase primary, local fallback) ───
 
 const ProjectLinkSchema = z
   .object({
@@ -255,7 +255,7 @@ async function parseProjectFile(filename: string): Promise<ProjectEntry | null> 
   };
 }
 
-export async function getAllProjects(): Promise<ProjectEntry[]> {
+async function getLocalProjects(): Promise<ProjectEntry[]> {
   const files = readDirectoryFiles(PROJECT_DIR);
   const projects = (await Promise.all(files.map(parseProjectFile))).filter(
     (p): p is ProjectEntry => p !== null
@@ -263,7 +263,93 @@ export async function getAllProjects(): Promise<ProjectEntry[]> {
   return projects.sort((a, b) => (a.order !== b.order ? a.order - b.order : a.title.localeCompare(b.title)));
 }
 
+interface SupabaseProjectRow {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  role: string;
+  timeline: string;
+  featured: boolean;
+  sort_order: number;
+  stack: string[];
+  impact: string[];
+  links: any;
+  content_mdx: string;
+  created_at: string;
+  updated_at: string;
+}
+
+async function rowToProjectEntry(row: SupabaseProjectRow): Promise<ProjectEntry> {
+  const markdown = row.content_mdx || "";
+  const html = await renderMarkdown(markdown);
+
+  return {
+    slug: row.slug,
+    title: row.title,
+    summary: row.summary,
+    role: row.role,
+    timeline: row.timeline,
+    featured: row.featured,
+    order: row.sort_order,
+    stack: row.stack || [],
+    impact: row.impact || [],
+    links: row.links || {},
+    content: markdown,
+    html,
+    headings: extractHeadings(markdown),
+  };
+}
+
+async function fetchSupabaseProjects(): Promise<ProjectEntry[] | null> {
+  try {
+    const supabase = createServerClient();
+    if (!supabase) return null;
+
+    const { data, error } = await supabase
+      .from("projects")
+      .select("*")
+      .order("sort_order", { ascending: true })
+      .order("title", { ascending: true });
+
+    if (error || !data) {
+      console.warn("[projects] Supabase fetch failed:", error?.message);
+      return null;
+    }
+
+    const rows: SupabaseProjectRow[] = data;
+    return Promise.all(rows.map((row) => rowToProjectEntry(row)));
+  } catch (err) {
+    console.warn("[projects] Supabase fetch threw:", err instanceof Error ? err.message : err);
+    return null;
+  }
+}
+
+export async function getAllProjects(): Promise<ProjectEntry[]> {
+  const supabaseProjects = await fetchSupabaseProjects();
+  if (supabaseProjects !== null && supabaseProjects.length > 0) return supabaseProjects;
+  return getLocalProjects();
+}
+
 export async function getProjectBySlug(slug: string): Promise<ProjectEntry | null> {
+  try {
+    const supabase = createServerClient();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("slug", slug)
+        .single();
+
+      if (!error && data) {
+        const row: SupabaseProjectRow = data;
+        return rowToProjectEntry(row);
+      }
+    }
+  } catch (err) {
+    console.warn("[projects] Project fetch threw:", err instanceof Error ? err.message : err);
+  }
+
   const filename = `${slug}.md`;
   if (!fs.existsSync(path.join(PROJECT_DIR, filename))) return null;
   return parseProjectFile(filename);
